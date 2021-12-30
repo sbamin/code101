@@ -25,9 +25,9 @@ uname -a
 >Running CentOS Linux release 7.7.1908 (Core)  
 >Linux sumner-log1 3.10.0-1062.1.2.el7.x86_64 #1 SMP Mon Sep 30 14:19:46 UTC 2019 x86_64 x86_64 x86_64 GNU/Linux 
 
-*   First, login to sumner with a clean env, i.e., as it ships with default profile from HPC team, and nothing added in following files. Default bash configuration for sumner looks similar to [confs/dotfiles/hpc_default_env/](confs/dotfiles/hpc_default_env/).
+*   First, login to sumner with a clean env, i.e., as it ships with default profile from HPC team, and nothing added in following files. Default bash configuration for sumner looks similar to following files. See example files in the source at :octicons-file-code-16: [confs/hpc/initials/]({{ repo.url }}{{ repo.tree }}/confs/hpc/initials/).
 
-```sh
+```
 ~/.bashrc
 ~/.bash_profile
 ~/.bash_aliases # if it exists
