@@ -1,5 +1,7 @@
 # coding 101
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/f891cc91-4c06-47f5-8cb7-ff4a24df2fe2/deploy-status)](https://app.netlify.com/sites/confident-dubinsky-6917c9/deploys)
+
 My notes on programming, mostly using R, Python, and bash.
 
 ### Using mkdocs
