@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+<!--   <link rel="stylesheet" href="{{config.site_url}}{{ 'assets/stylesheets/main.c296cc61.min.css' | url }}"> -->
+	{% if page and page.meta and page.meta.keywords %}
+		{% set keywords = page.meta.keywords %}
+		<meta name="keywords" content="{{ page.meta.keywords }}">
+	{% elif config.extra.site_keywords %}
+		{% set keywords = config.extra.site_keywords %}
+		<meta name="keywords" content="{{ config.extra.site_keywords }}">
+	{% endif %}
+
+  {% set title = config.site_name %}
+  {% if page and page.title and not page.is_homepage %}
+    {% set title = page.title ~ " &middot; " ~ config.site_name | striptags %}
+  {% endif %}
+  {% set description = config.site_description %}
+  {% if page and page.meta and page.meta.description %}
+    {% set description = page.meta.description %}
+  {% endif %}
+  {% set image = config.site_url ~ '/assets/images/fixed/sitelogo.png' %}
+  {% if page and page.meta and page.meta.image %}
+    {% set image = config.site_url ~ page.meta.image %}
+  {% endif %}
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{ title }}">
+  <meta property="og:description" content="{{ description }}">
+  <meta property="og:url" content="{{ page.canonical_url }}">
+  <meta property="og:image" content="{{ image }}">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="256">
+  <meta property="og:image:height" content="256">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="@{{ config.extra.twitter }}">
+  <meta name="twitter:creator" content="@{{ config.extra.twitter }}">
+  <meta name="twitter:title" content="{{ title }}">
+  <meta name="twitter:description" content="{{ description }}">
+  <meta name="twitter:image" content="{{ image }}">
+  <meta name="twitter:image:alt" content="webpage banner or site logo">
+{% endblock %}
+
+<!-- Announcements - remove suffix: off -->
+{% block announceoff %}
+  <a href="https://twitter.com/{{ config.extra.twitter }}">
+    For updates follow <strong>@{{ config.extra.twitter }}</strong> on
+    <span class="twemoji twitter">
+      {% include ".icons/fontawesome/brands/twitter.svg" %}
+    </span>
+    <strong>Twitter</strong>
+  </a>
+{% endblock %}
+
+{% block content %}
+  {% if page and page.meta and page.meta.wip == true %}
+	<div class="admonition warning"> <p class="admonition-title"> 🚧 Work in Progress 🚧 </p> <p>Following page is work in progress. Feel free to contribute by clicking <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"></path></svg></span> icon located next to the title of this page. If you land on a github 404 page, you may either not have logged into your github account or not have been added to a required github group of writers. For the latter, tweet <span class="twemoji twitter"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"></path></svg></span> <code>@{{ config.extra.twitter }}</code> to be added into a valid group.</p> </div>
+  {% endif %}
+
+  {{ super() }}
+
+  {% if page and page.meta and page.meta.author %}
+    <p><small>Author: {{ page.meta.author }}</small></p>
+  {% else %}
+    <p><small>Author: <a href="https://sbamin.com/about" rel="me">{{ config.site_author }}</a> <span class="twemoji">
+  {% include ".icons/fontawesome/brands/twitter.svg" %}
+</span><a href="https://twitter.com/{{config.extra.twitter}}">@{{config.extra.twitter}}</a></small></p>
+  {% endif %}
+
+<!--   <script src="{{config.site_url}}{{ 'assets/javascripts/bundle.93302429.min.js' | url }}"></script>
+  <script src="{{config.site_url}}{{ 'assets/javascripts/bundle.71c96ae2.min.js' | url }}"></script> -->
+{% endblock %}
