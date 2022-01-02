@@ -2,7 +2,7 @@
 <div class="md-copyright">
   {% if config.copyright %}
     <div class="md-copyright__highlight">
-      {{ config.copyright }}
+    	&copy; 2003-{{ build_date_utc.strftime('%Y') }}: <a href="https://sbamin.com" title="Home">SBAmin.com</a> | {{ config.copyright }}
     </div>
   {% endif %}
   {% if not config.extra.generator == false %}

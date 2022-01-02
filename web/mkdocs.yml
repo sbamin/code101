@@ -12,7 +12,7 @@ edit_uri: "edit/scratch/web/docs/"
 
 # Copyright
 copyright: >-
-  © <a rel="license" href="https://sbamin.com/disclosure/" title="CC BY-NC-SA 4.0 License, link to site disclosure">2003-2021</a>: <a href="https://sbamin.com" title="Home">SBAmin.com</a>
+  <a href="/disclosure/">Disclosure</a>
 
 # Configuration
 theme:
@@ -54,6 +54,7 @@ theme:
     code: 'Fira Code'
   icon:
     logo: logo
+    repo: fontawesome/brands/git-square
   favicon: /assets/images/fixed/favicon.png
 
 # Plugins
@@ -61,7 +62,8 @@ plugins:
   - search
   - macros
   - git-revision-date-localized:
-      type: date
+      type: iso_date
+      timezone: US
       fallback_to_build_date: true
   - minify:
       minify_html: true
