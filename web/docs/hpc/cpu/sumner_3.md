@@ -1,4 +1,5 @@
 ---
+title: "Setting up CPU env - Part 3"
 description: "Sumner HPC Setup 2021: Part 3"
 keywords: "sumner,hpc,conda,bash,jupyter,programming"
 ---
@@ -205,14 +206,14 @@ Precompiling project...
   11 dependencies successfully precompiled in 8 seconds (4 already precompiled)
 ```
 
-* Exit julia prompt by `CTRD D`
+* Exit julia prompt by ++ctrl+d++
 
-For consistency with naming kernels and ensuring that we load a valid _yoda_ env prior to running kernel, let's adjust kernel settings.
+For consistency with naming kernels and ensuring that we load a valid _yoda_ env prior to running kernel, let's adjust kernel settings. For rationale, see [kernel loading section in Part 2](../../cpu/sumner_2/#kernel-loading).
 
 *   Create a new kernel wrapper, _/projects/verhaak-lab/amins/hpcenv/opt/kernels/wrap_yoda_jl16_
 
 ```sh
-mkdir -p /projects/verhaak-lab/amins/hpcenv/opt/kernels/wrap_yoda_jl16
+mkdir -p /projects/verhaak-lab/amins/hpcenv/opt/kernels
 touch /projects/verhaak-lab/amins/hpcenv/opt/kernels/wrap_yoda_jl16
 
 # make file executable
@@ -597,6 +598,8 @@ Following setup is optional.
 mamba install -c bioconda bioconductor-depmap
 mamba install -c conda-forge r-odbc r-dbi
 mamba install -c conda-forge r-ggthemes r-cowplot r-ggstatsplot r-hrbrthemes
+## OpenCL support for CPU
+mamba install -c conda-forge pocl
 ```
 
 ### JupyText

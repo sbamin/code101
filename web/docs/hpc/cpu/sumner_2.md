@@ -1,4 +1,5 @@
 ---
+title: "Setting up CPU env - Part 2"
 description: "Sumner HPC Setup 2021: Part 2"
 keywords: "sumner,hpc,conda,bash,jupyter,programming"
 ---
@@ -195,13 +196,29 @@ conda activate yoda
 mamba list | grep -Ei 'r-base'
 ```
 
-*   We can notice that R version is 4.1.1 (or higher). You can also check R version by `R --version`. Remember this version and add it to following newly created file.
+*   We can notice that R version is 4.1.1 (or higher). You can also check R version by `R --version`. Remember this version and add it to following newly created file:
 
 ```sh
 nano "${CONDA_PREFIX}"/conda-meta/pinned
 ```
 
 >Note that `echo ${CONDA_PREFIX}` points to _conda-meta/_ directory under _yoda_ and not the _base_ env because we are within _yoda_ env. In other words, pinned packages env specific and you can update R package in other environment(s), if present.
+
+*  Add following as a new line entry:
+
+```
+r-base ==4.1.1
+```
+
+??? info "Check a valid line break"
+    Since we are creating a new file and only adding a single line of text, when we save this text file, we should confirm that it is the [end of the line](https://en.wikipedia.org/wiki/Newline). This is usually recognized by pressing the ++enter++. Unix systems recognizes such line break using an invisible `$` sign which you can confirm by running `cat -e "${CONDA_PREFIX}"/conda-meta/pinned`
+
+    ```
+    r-base ==4.1.1$
+    $
+    ```
+
+    With each line break, you will notice `$` sign, e.g., two lines in my case. You may remove a second line by editing file again but make sure to run `cat -e "${CONDA_PREFIX}"/conda-meta/pinned` to check a valid line break.
 
 You may [pin](https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-pkgs.html#preventing-packages-from-updating-pinning) only part of [the major and minor version](https://en.wikipedia.org/wiki/Software_versioning), i.e., to allow updates from 4.1.1 to 4.1.2 or 4.1.3 but not from 4.1.1 to 4.2.*. However, I rather freeze the specific version and update to builds at the later date, if need arises. To do so, remove the pinned entry from `"${CONDA_PREFIX}"/conda-meta/pinned` and do `mamba update r-base=4.1.2` or other version. Since [R developer team](https://cran.r-project.org/doc/manuals/r-release/NEWS.html) updates [major.minor version](https://en.wikipedia.org/wiki/Software_versioning) of R every quarter or so, I try to keep those R versions in a separate env rather updating as certain R packages may throw an error with such major updates.
 
@@ -370,7 +387,7 @@ Since we already have setup _yoda_ env for R, you can now install additional R l
 
 ## Install essentials
 
-This can again vary per user's need and optional. If you find errors compiling packages, you may end up needing installing respective dev libraries, e.g., libiconv, zlib, etc. if they are not already installed in the current (_yoda_ in this case) conda env.
+This can again vary per user's need and optional. If you find errors compiling packages, you may end up installing respective dev libraries, e.g., libiconv, zlib, etc. if they are not already installed in the current (_yoda_ in this case) conda env.
 
 ```sh
 mamba install -c conda-forge wget curl rsync libiconv parallel ipyparallel
@@ -430,7 +447,6 @@ R
 ```r
 library(IRkernel)
 installspec(name = "yoda_r41", displayname = "yoda_r41", user = TRUE)
-q()
 
 ## quit R session
 q(save = "no")
@@ -461,6 +477,161 @@ nano kernel.json
 ```
 
 >Rename `"display_name": "Bash"` to `"display_name": "yoda_bash"`
+
+### kernel loading
+
+Following completion of the entire setup, we are going to run JupyterLab from the _base_ env. However, on daily basis, we like to access Python and R from _yoda_ and not _base_[^noRinbase]. Default kernel setup above should let jupyterlab handle conda env specific python but not so for other kernels.
+
+However, I have noticed issues running Python and R from a non _base_ conda env as sometimes packages requiring shared libraries may throw an error as such shared libraries are either missing in _base_ env or have a different version than one in the current env, i.e., _yoda_ env where package was originally installed or compiled.
+
+I mitigate such issues by **loading a valid bash env prior to initializing kernel**, e.g., I will wrap a default jupyter kernel settings into a bash script (wrapper) and will activate a valid conda env, e.g., _yoda_ in this case prior to initializing _yoda_ specific Python or R kernel. That way, kernel will consistently inherit a valid login (bash) env for the respective conda env.
+
+[^noRinbase]: Notice that there is no R in the _base_ env. So, hitting R will not start R session unless you do `mamba activate yoda`!
+
+#### yoda python
+
+*   Create a new kernel wrapper matching name of kernel we like to edit, e.g., _/projects/verhaak-lab/amins/hpcenv/opt/kernels/wrap_yoda_py310_
+
+```sh
+mkdir -p /projects/verhaak-lab/amins/hpcenv/opt/kernels
+touch /projects/verhaak-lab/amins/hpcenv/opt/kernels/wrap_yoda_py310
+
+# make file executable
+chmod 700 /projects/verhaak-lab/amins/hpcenv/opt/kernels/wrap_yoda_py310
+```
+
+*   Add following to _wrap_yoda_py310_ file. Change user paths where applicable.
+
+```
+#!/bin/bash
+
+## Load env before loading jupyter kernel
+## @sbamin
+
+## https://github.com/jupyterhub/jupyterhub/issues/847#issuecomment-260152425
+
+#### Activate CONDA in subshell ####
+## Read https://github.com/conda/conda/issues/7980
+# I am using conda instead of mamba to activate env
+# as somehow I notices warnings/errors sourcing
+# mamba.sh in sub-shells.
+CONDA_BASE=$(conda info --base) && \
+source "${CONDA_BASE}"/etc/profile.d/conda.sh && \
+conda activate yoda
+#### END CONDA SETUP ####
+
+# this is the critical part, and should be at the end of your script:
+exec /projects/verhaak-lab/amins/hpcenv/mambaforge/envs/yoda/bin/python -m ipykernel_launcher "$@"
+
+## Make sure to update corresponding kernel.json under ~/.local/share/jupyter/kernels/<kernel_name>/kernel.json
+
+#_end_
+```
+
+*   Now, adjust kernel settings.
+
+```sh
+## go to kernel base dir
+cd ~/.local/share/jupyter/kernels/
+
+## there should be yoda_py310 directory or
+## one matching --name yoda_py310 argument
+## we used above when installing python kernel
+cd yoda_py310
+
+## edit kernel.json
+nano kernel.json
+```
+
+*   Replace contents of _kernel.json_ with following:
+
+```json
+{
+ "argv": [
+  "/projects/verhaak-lab/amins/hpcenv/opt/kernels/wrap_yoda_py310",
+  "-f",
+  "{connection_file}"
+ ],
+ "display_name": "yoda_py310",
+ "language": "python",
+ "metadata": {
+  "debugger": true
+ }
+}
+```
+
+#### yoda R
+
+Now, we can reconfigure R kernel for _yoda_ same as above but with a few changes in the wrapper script.
+
+*   Create a new kernel wrapper for R, e.g., _/projects/verhaak-lab/amins/hpcenv/opt/kernels/wrap_yoda_r41_
+
+```sh
+mkdir -p /projects/verhaak-lab/amins/hpcenv/opt/kernels
+touch /projects/verhaak-lab/amins/hpcenv/opt/kernels/wrap_yoda_r41
+
+# make file executable
+chmod 700 /projects/verhaak-lab/amins/hpcenv/opt/kernels/wrap_yoda_r41
+```
+
+*   Add following to _wrap_yoda_r41_ file. Change user paths where applicable.
+
+```
+#!/bin/bash
+
+## Load env before loading jupyter kernel @sbamin https://github.com/jupyterhub/jupyterhub/issues/847#issuecomment-260152425
+
+#### Activate CONDA in subshell ####
+## Read https://github.com/conda/conda/issues/7980
+CONDA_BASE=$(conda info --base) && \
+source "${CONDA_BASE}"/etc/profile.d/conda.sh && \
+conda activate yoda
+#### END CONDA SETUP ####
+
+## this is the critical part, and should be at the end of your script:
+## path to R and arguments come from original kernel.json under
+## ~/.local/share/jupyter/kernels/yoda_r41/ directory.
+
+## In some cases, path to R may differ and may originate from
+## .../envs/yoda/lib64/R/bin/R instead of .../envs/rey/lib64/R/bin/R
+
+## If so, adjust path to R here accordingly.
+exec /projects/verhaak-lab/amins/hpcenv/mambaforge/envs/yoda/lib/R/bin/R --slave -e "IRkernel::main()" --args "$@"
+
+## Make sure to update corresponding kernel.json under ~/.local/share/jupyter/kernels/<kernel_name>/kernel.json
+
+#_end_
+```
+
+*   Now, adjust kernel settings.
+
+```sh
+## go to kernel base dir
+cd ~/.local/share/jupyter/kernels/
+
+## there should be yoda_py310 directory or
+## one matching --name yoda_py310 argument
+## we used above when installing python kernel
+cd yoda_r41
+
+## edit kernel.json
+nano kernel.json
+```
+
+*   Replace contents of _kernel.json_ with following:
+
+```json
+{
+ "argv": [
+  "/projects/verhaak-lab/amins/hpcenv/opt/kernels/wrap_yoda_r41",
+  "{connection_file}"
+ ],
+ "display_name": "yoda_r41",
+ "language": "R"
+}
+```
+
+Done! Next time you run jupyter, you should have a new julia kernel in JupyterLab.
 
 ### Configure JupyterLab
 
@@ -697,8 +868,8 @@ jupyter notebook --no-browser --certfile="${MYPEM}" --keyfile "${MYKEY}" --ip="$
 
 *   Once a jupyter session begins and assuming you are on a secure local area network, you can open URL: `https://<REMOTEIP>:<PORT>/lab` to launch jupyter lab.
 
-!!! info "Run jupyterlab from a compute and not login node"
-    For longer running and compute-intensive jupyterlab sessions, it is preferable to run jupyterlab from a compute and not a login node. Talk to your HPC staff on policies regarding use of compute node to start a jupyter session.
+!!! warning "Run jupyterlab from a compute and not login node"
+    **Avoid running JupyterLab server on a login node.** It will most likely be killed by HPC admins. For longer running and compute-intensive jupyterlab sessions, it is preferable to run jupyterlab from a compute and not a login node. This requires series of secure port forwarding which is beyond the scope of current documentation. However, your HPC may already have support for running JupyterLab on a compute node, e.g, similar to this one at [Univ. of Bern](https://hpc-unibe-ch.github.io/software/JupyterLab.html) or [Princeton Univ.](https://researchcomputing.princeton.edu/support/knowledge-base/jupyter). Talk to your HPC staff for policies on running JupyterLab server.
 
 Before continuing setup (not over yet!), let's logout and login first from interactive job and exit HPC.
 
@@ -710,6 +881,3 @@ ssh sumner
 ```
 
 [In Part 3](../sumner_3/), I will finalize setting up Sumner (or CPU-based) HPC and also install a dedicated conda env for Winter (GPU-based) HPC.
-
-END
-
