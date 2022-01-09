@@ -21,3 +21,9 @@ cd "${DOCDIR}"/web && echo -e "\nWorkdir is $(pwd)\n"
 mkdocs serve
 
 ## END ##
+
+## versioning ##
+# mike deploy --branch www --push --update-aliases 1.2 latest
+# mike set-default -b www --push latest
+# mike list --branch www
+# mike serve --branch www
