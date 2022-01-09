@@ -112,15 +112,33 @@ conda --version
 
 For most packages, e.g., R, snakemake workflow, etc., we will use dedicated conda env and avoid installing into base env. That is to keep base env clean and without much of dependencies. Unlike base env, additional env can be recreated without a risk of breaking conda setup. However, we will require a few packages, e.g., JupyterLab and Notebook, that typically ships with regular (and not miniconda or mambaforge) anaconda3 installation.
 
+??? tip "Install JupyterLab in its own conda env"
+    If you prefer, you can skip installing JupyterLab in _base_ env and instead use its own dedicated env. This is perhaps a preferred way to keep _base_ env minimal and also allows you to update JupyterLab from time to time without worrying about breaking _base_ env. However, when you start jupyterlab session, you need to switch (activate) to the respective conda env from _base_ or other envs.
+
+    To install jupyterlab in its dedicated env, do following:
+
+    ```sh
+    mamba create -c conda-forge -n jlab jupyterlab nodejs jupyterthemes jupytext dos2unix jupyter_http_over_ws jupyterlab-link-share
+    
+    mamba activate jlab
+
+    ## check installed extensions, if any
+    jupyter lab extension list
+    jupyter server extension list
+    ```
+    
+    Read install guide for extensions, if any, e.g. some extensions like jupyter_http_over_ws are not enabled by default for good (saftey) reasons.
+
 *   [JupyterLab](https://jupyter.org) is similar to RStudio IDE and provides richer interface to several programming languages, including python, R, julia, and many more. To install jupyterlab, [please read installation guide](https://jupyterlab.readthedocs.io/en/stable/getting_started/installation.html).
 
 ```sh
+## core package
 mamba install -c conda-forge jupyterlab
 ```
 
 >Even though conda-forge is set as the highest priority channel in _~/.condarc_, I am explicitly specifying to use the same channel while running install or update command.
 
->This will install jupyterlab and series of its dependencies. You can check version of related packages using `mamba list jupyter`
+>This will install jupyterlab and series of its dependencies. You can check version of related packages using `mamba list | grep -E "jupyter"` although versions may differ as they get updated over time.
 
 ```
 # packages in environment at /projects/verhaak-lab/amins/hpcenv/mambaforge:
