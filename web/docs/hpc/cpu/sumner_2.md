@@ -759,6 +759,45 @@ mamba install -c conda-forge jupyterthemes
 jt -t solarizedl -T -N -f firacode -fs 12 -tf ptserif -tfs 11 -nf ptsans -nfs 12 -dfs 11 -ofs 10 -cellw 90% -lineh 170
 ```
 
+#### keyboard shortcuts
+
+If you are familiar with RStudio shortcuts for R pipe `%>%` and assignment `<-` operator, you can enable those in JupyterLab too[^ref_kbr] by first starting a jupyterlab session. You can then go to `Advanced Settings Editor` either by pressing ++cmd+comma++ on a mac or go to `Settings` from a top menubar, and then clicking `Keyboard Shortcuts` option. There, under `User Preferences` pane, you can paste following to enable keyboard shortcuts, i.e., ++alt+minus++ for `<-` and ++shift+cmd+m++ for `%>%` operator.
+
+[^ref_kbr]: Based on a reply from @krassowski at [JupyterLab forums](https://github.com/jupyterlab/jupyterlab/issues/10114#issuecomment-821993321)
+
+```
+{
+    "shortcuts": [
+        {
+            "command": "apputils:run-first-enabled",
+            "selector": "body",
+            "keys": ["Alt -"],
+            "args": {
+                "commands": [
+                    "console:replace-selection",
+                    "fileeditor:replace-selection",
+                    "notebook:replace-selection",
+                ],
+                "args": {"text": " <- "}
+            }
+        },
+        {
+            "command": "apputils:run-first-enabled",
+            "selector": "body",
+            "keys": ["Accel Shift M"],
+            "args": {
+                "commands": [
+                    "console:replace-selection",
+                    "fileeditor:replace-selection",
+                    "notebook:replace-selection",
+                ],
+                "args": {"text": " %>% "}
+            }
+        }
+    ]
+}
+```
+
 #### gpg signatures
 
 Optional: Import gpg keys, if any for [code signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits). More at https://unix.stackexchange.com/a/392355/28675
