@@ -1,4 +1,5 @@
 ---
+title: "Setting up CPU env - Part 3"
 description: "Sumner HPC Setup 2021: Part 3"
 keywords: "sumner,hpc,conda,bash,jupyter,programming"
 ---
@@ -205,14 +206,14 @@ Precompiling project...
   11 dependencies successfully precompiled in 8 seconds (4 already precompiled)
 ```
 
-* Exit julia prompt by `CTRD D`
+* Exit julia prompt by ++ctrl+d++
 
-For consistency with naming kernels and ensuring that we load a valid _yoda_ env prior to running kernel, let's adjust kernel settings.
+For consistency with naming kernels and ensuring that we load a valid _yoda_ env prior to running kernel, let's adjust kernel settings. For rationale, see [kernel loading section in Part 2](../../cpu/sumner_2/#kernel-loading).
 
 *   Create a new kernel wrapper, _/projects/verhaak-lab/amins/hpcenv/opt/kernels/wrap_yoda_jl16_
 
 ```sh
-mkdir -p /projects/verhaak-lab/amins/hpcenv/opt/kernels/wrap_yoda_jl16
+mkdir -p /projects/verhaak-lab/amins/hpcenv/opt/kernels
 touch /projects/verhaak-lab/amins/hpcenv/opt/kernels/wrap_yoda_jl16
 
 # make file executable
@@ -340,8 +341,8 @@ Proceed (Y/n)? Y
 *   Remove a related extension.
 
 ```sh
-jupyter serverextension disable jupyterlab_sql
-jupyter labextension uninstall jupyterlab-sql
+jupyter server extension disable jupyterlab_sql
+jupyter lab extension disable jupyterlab-sql
 ```
 
 *   Rebuild existing jupyter extensions.
@@ -349,11 +350,9 @@ jupyter labextension uninstall jupyterlab-sql
 ```sh
 jupyter lab build
 
-## update all extensions
-jupyter labextension update --all
-
 # check enabled extensions
-jupyter serverextension list
+jupyter lab extension list
+jupyter server extension list
 echo $?
 ```
 
@@ -402,17 +401,15 @@ Successfully installed jupyterlab-sql-0.3.3
 *   Build required jupyterlab extension for SQL
 
 ```sh
-jupyter serverextension enable jupyterlab_sql --py --sys-prefix
+jupyter server extension enable jupyterlab_sql --py --sys-prefix
 
 ## Rebuild all of jupyterlab extensions
 ## this may take a while (~5 minutes)
 jupyter lab build
 
-## update all extensions
-jupyter labextension update --all
-
 # check enabled extensions
-jupyter serverextension list
+jupyter lab extension list
+jupyter server extension list
 ```
 
 *   [Read on how-to use SQL GUI](https://github.com/pbugnion/jupyterlab-sql) 
@@ -597,15 +594,20 @@ Following setup is optional.
 mamba install -c bioconda bioconductor-depmap
 mamba install -c conda-forge r-odbc r-dbi
 mamba install -c conda-forge r-ggthemes r-cowplot r-ggstatsplot r-hrbrthemes
+## OpenCL support for CPU
+mamba install -c conda-forge pocl
 ```
 
 ### JupyText
 
 Optional: [Jupytext](mamba install -c conda-forge) allows running jupyter notebooks as text or markdown files similar to running scripts for R, Python, and Julia. 
 
-*   Install jupytext in _base_ env. Note compatibility for related jupyterlab extension at https://github.com/mwouts/jupytext Current version of jupytext (1.13.3) is only compatible with JupyterLab 3+ (I have v3.2.4 and so all good!)
+*   Install jupytext in _base_ env if if is not installed before. Note compatibility for related jupyterlab extension at https://github.com/mwouts/jupytext Current version of jupytext (1.13.3) is only compatible with JupyterLab 3+ (I have v3.2.4 and so all good!)
 
 ```sh
+mamba deactivate
+mamba activate base
+
 mamba install -c conda-forge jupytext
 ```
 
@@ -613,12 +615,15 @@ mamba install -c conda-forge jupytext
 
 ```sh
 ## list enabled extension
-jupyter serverextension list
+jupyter lab extension list
+jupyter server extension list
 
 ## update all extensions
-jupyter labextension update --all
+jupyter lab extension update --all
+jupyter server extension update --all
 
-jupyter serverextension list
+jupyter lab extension list
+jupyter server extension list
 ```
 
 I have also installed [jupyter_contrib_nbextensions](https://jupyter-contrib-nbextensions.readthedocs.io/en/latest/index.html) extension earlier in [Part 2](../sumner_2/#start-jupyterlab) which allows additional configuration for jupyter notebook. This is a **beta extension and an optional** setup.
@@ -787,7 +792,7 @@ SINGULARITY_SIF="/projects/verhaak-lab/amins/containers/sifbin"
 *   Avoid installing packages via Jupyter notebook as unlike terminal session, debugging for a failed installation is difficult with notebook and env session may vary per initialization sequence of jupyter kernel, i.e., whether or not appropriate conda env was loaded prior to starting kernel.
 *   While installing packages, prefer using `mamba install/update` first. If this forces you to downgrade core packages like R and python or several core shared libraries, e.g., libz, openssl, etc., you may fall back to compiling via language-specific functions, e.g., `install.packages()` in R, `pip install` for python, etc.
 *   While compiling packages, ensure that precedence of paths in PATH, [LD_LIBRARY_PATH, LIBRARY_PATH](https://stackoverflow.com/questions/4250624/ld-library-path-vs-library-path), and related devtools paths are aligned to conda env AND for the respective programming env profile, e.g., if you are compiling a package with intention to use it from _yoda_ env (say a R package), your terminal bash session should have precedence for _/projects/verhaak-lab/amins/hpcenv/mambaforge/envs/yoda/_ path in PATH and if applicable, in LD_LIBRARY_PATH and LIBRARY_PATH too. The identical precedence of paths should also be present in _~/.Renviron_ file.
-*   Know that _~/.Renviron_ will be read by any of R session running from _yoda_ or other conda env (say you have R 4.1 in _yoda_ but R 5.1 in _anakin_). Of course, Renviron varies for R 4.1 and R 5.1, and hence, you should have a dedicated Renviron file](https://stat.ethz.ch/R-manual/R-devel/library/base/html/Startup.html) for each of conda env. You can do that by either [creating a _Renviron.site_ file in the respective env under _/projects/verhaak-lab/amins/hpcenv/mambaforge/envs/yoda/lib/R/etc_ path or loading/unloading a custom Renviron file each time you activate/deactivate conda env using configuration files similar to *~/profile.d/s01_startup.sh* file, e.g., `activate.d/load_R4.1env.sh` and `deactivate/unload_R4.1env.sh` under _/projects/verhaak-lab/amins/hpcenv/mambaforge/envs/yoda/etc/conda/_.
+*   Know that _~/.Renviron_ will be read by any of R session running from _yoda_ or other conda env (say you have R 4.1 in _yoda_ but R 5.1 in _anakin_). Of course, Renviron varies for R 4.1 and R 5.1, and hence, you should have a dedicated [Renviron file](https://stat.ethz.ch/R-manual/R-devel/library/base/html/Startup.html) for each of conda env. You can do that by either [creating a _Renviron.site_](https://support.rstudio.com/hc/en-us/articles/360047157094-Managing-R-with-Rprofile-Renviron-Rprofile-site-Renviron-site-rsession-conf-and-repos-conf) file in the respective env under _/projects/verhaak-lab/amins/hpcenv/mambaforge/envs/yoda/lib/R/etc_ path or loading/unloading a custom Renviron file each time you activate/deactivate conda env using configuration files similar to *~/profile.d/* files (see bash startup below), e.g., `activate.d/load_R4.1env.sh` and `deactivate/unload_R4.1env.sh` under _/projects/verhaak-lab/amins/hpcenv/mambaforge/envs/yoda/etc/conda/_.
 *   For julia, [similar startup env files](https://docs.julialang.org/en/v1/manual/environment-variables/) should be *~/.julia/config/startup.jl* and *`$JULIA_BINDIR`/`$SYSCONFDIR`/julia/startup.jl*.
 
 ***

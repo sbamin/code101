@@ -1,4 +1,5 @@
 ---
+title: "Setting up CPU env - Part 1"
 description: "Sumner HPC Setup 2021"
 keywords: "sumner,hpc,conda,bash,jupyter,programming"
 ---
@@ -11,6 +12,9 @@ There are at least two scenarios with an existing HPC env:
 2. We already have an existing custom setup, e.g., using linuxbrew or even conda, and we like to start from fresh setup. This is true (as in my case) when you may have setup conda env in your home directory and conda env grew in size over time that you are now approaching disk quota of 50 GB for home directory. So, now we like to move it to tier 1 space (`/projects/`) which has disk quota in TBs in not GBs.
 
 Following will guide setting up HPC env for both scenarios.
+
+!!! tip "Change user paths per your username and HPC paths"
+    Most of setup below have commands and locations (paths) tied to my username, `amins` and our HPC cluster at [The Jackson Laboratory (JAX)](https://www.jax.org), namely Sumner and Winter HPC, one each of CPU and GPU-based computing. Please ensure that you edit paths such that it reflects your username and paths that are available for HPC at your institute.
 
 ### Option 1: Start from scratch
 
@@ -329,7 +333,9 @@ cd "$HOME" && \
 bash "${HOME}"/Downloads/conda/Mambaforge-Linux-x86_64.sh
 ```
 
-*   Accept to license agreement and then set installation path to tier 1 space, e.g., _/projects/verhaak-lab/amins/hpcenv/mambaforge_. Installer will start installing conda env and towards the end, it will prompt you for initializing conda env. Say yes! If you say no, you can follow instructions that installer outputs to ensure that you have a working conda env each time you login to HPC. To do so, conda needs to write a few lines of code to _~/.bashrc_ file, so that HPC login env will always start with a valid (by modifying PATH and a several other `env` variables) conda env.
+*   Accept to license agreement and then set installation path to tier 1 space, e.g., _/projects/verhaak-lab/amins/hpcenv/mambaforge_ in my case.
+    * Note that this will vary based on your username and available location on your HPC where you can store large amount of data. Conda env and related setup can grow over time and may exceed typical 50 GB quota for a user home directory. So, prefer installing conda and related env at location where you can store more data. For JAX, it's called tier 1 space under `/projects/<lab_name>/<user_name>/` path.
+    *   Installer will start installing conda env and towards the end, it will prompt you for initializing conda env. Say yes! If you say no, you can follow instructions that installer outputs to ensure that you have a working conda env each time you login to HPC. To do so, conda needs to write a few lines of code to _~/.bashrc_ file, so that HPC login env will always start with a valid (by modifying PATH and a several other `env` variables) conda env.
 
 ```
 Do you wish the installer to initialize Mambaforge

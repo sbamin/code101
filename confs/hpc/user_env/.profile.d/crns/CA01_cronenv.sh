@@ -33,11 +33,15 @@ HPCENV_VERSION="2.0"
 ############################# set default user env #############################
 ## Typically an output of PATH after you have successfully setup bash startup
 ## sequence using ~/.profile.d/ setup and logged again into HPC.
-PATH="/home/amins/bin:/projects/verhaak-lab/amins/hpcenv/mambaforge/bin:/projects/verhaak-lab/amins/hpcenv/mambaforge/condabin:/projects/verhaak-lab/amins/hpcenv/opt/bin:/home/amins/.local/bin:/projects/verhaak-lab/amins/hpcenv/opt/local/bin:/cm/local/apps/singularity/current/bin:/projects/verhaak-lab/amins/hpcenv/opt/modules/apps/julia/1.6.4/bin:/cm/shared/apps/slurm/18.08.8/sbin:/cm/shared/apps/slurm/18.08.8/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin"
+PATH="/home/amins/bin:/projects/verhaak-lab/amins/hpcenv/mambaforge/bin:/projects/verhaak-lab/amins/hpcenv/mambaforge/condabin:/projects/verhaak-lab/amins/hpcenv/opt/bin:/home/amins/.local/bin:/projects/verhaak-lab/amins/hpcenv/opt/local/bin:/cm/local/apps/singularity/current/bin:/projects/verhaak-lab/amins/hpcenv/opt/modules/apps/julia/1.6.4/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin"
 
-LD_LIBRARY_PATH="/cm/shared/apps/slurm/18.08.8/lib64/slurm:/cm/shared/apps/slurm/18.08.8/lib64"
+## avoid setting slurm related env vars because slurm profile
+## is different across CPU and GPU HPCs.
+## So, load slurm profile per HPC using modules (below)
+# LD_LIBRARY_PATH="/cm/shared/apps/slurm/18.08.8/lib64/slurm:/cm/shared/apps/slurm/18.08.8/lib64"
 
-export PATH LD_LIBRARY_PATH
+export PATH
+# export LD_LIBRARY_PATH
 
 ###################### load minimal bash startup sequence ######################
 ## copying some of essential setup commands that we wrote in ~/.profile.d/ files.
@@ -91,6 +95,12 @@ export RUNNING_JOBS RVDISKSTAT T1CAP T2CAP FASTSTORECAP RVDISKSTAT MAXQ_BATCH MA
 
 ## default user modules ##
 module use --apend "${HPCMODULES}"
+
+## do not specify specific version and instead load
+## default version managed by HPC Admin.
+## default version varies across HPCs, e.g., CPU and GPU
+## HPC may have a different slurm profile.
+module load slurm
 
 ## PS: we can't use mypathmunge here as we did not define it upstream!
 ## Instead, we hardcoded paths for julia, singularity, and other apps in PATH

@@ -1,4 +1,5 @@
 ---
+title: "Setting up CPU env - Part 2"
 description: "Sumner HPC Setup 2021: Part 2"
 keywords: "sumner,hpc,conda,bash,jupyter,programming"
 ---
@@ -111,15 +112,33 @@ conda --version
 
 For most packages, e.g., R, snakemake workflow, etc., we will use dedicated conda env and avoid installing into base env. That is to keep base env clean and without much of dependencies. Unlike base env, additional env can be recreated without a risk of breaking conda setup. However, we will require a few packages, e.g., JupyterLab and Notebook, that typically ships with regular (and not miniconda or mambaforge) anaconda3 installation.
 
+??? tip "Install JupyterLab in its own conda env"
+    If you prefer, you can skip installing JupyterLab in _base_ env and instead use its own dedicated env. This is perhaps a preferred way to keep _base_ env minimal and also allows you to update JupyterLab from time to time without worrying about breaking _base_ env. However, when you start jupyterlab session, you need to switch (activate) to the respective conda env from _base_ or other envs.
+
+    To install jupyterlab in its dedicated env, do following:
+
+    ```sh
+    mamba create -c conda-forge -n jlab jupyterlab nodejs jupyterthemes jupytext dos2unix jupyter_http_over_ws jupyterlab-link-share
+    
+    mamba activate jlab
+
+    ## check installed extensions, if any
+    jupyter lab extension list
+    jupyter server extension list
+    ```
+    
+    Read install guide for extensions, if any, e.g. some extensions like jupyter_http_over_ws are not enabled by default for good (saftey) reasons.
+
 *   [JupyterLab](https://jupyter.org) is similar to RStudio IDE and provides richer interface to several programming languages, including python, R, julia, and many more. To install jupyterlab, [please read installation guide](https://jupyterlab.readthedocs.io/en/stable/getting_started/installation.html).
 
 ```sh
+## core package
 mamba install -c conda-forge jupyterlab
 ```
 
 >Even though conda-forge is set as the highest priority channel in _~/.condarc_, I am explicitly specifying to use the same channel while running install or update command.
 
->This will install jupyterlab and series of its dependencies. You can check version of related packages using `mamba list jupyter`
+>This will install jupyterlab and series of its dependencies. You can check version of related packages using `mamba list | grep -E "jupyter"` although versions may differ as they get updated over time.
 
 ```
 # packages in environment at /projects/verhaak-lab/amins/hpcenv/mambaforge:
@@ -195,13 +214,29 @@ conda activate yoda
 mamba list | grep -Ei 'r-base'
 ```
 
-*   We can notice that R version is 4.1.1 (or higher). You can also check R version by `R --version`. Remember this version and add it to following newly created file.
+*   We can notice that R version is 4.1.1 (or higher). You can also check R version by `R --version`. Remember this version and add it to following newly created file:
 
 ```sh
 nano "${CONDA_PREFIX}"/conda-meta/pinned
 ```
 
 >Note that `echo ${CONDA_PREFIX}` points to _conda-meta/_ directory under _yoda_ and not the _base_ env because we are within _yoda_ env. In other words, pinned packages env specific and you can update R package in other environment(s), if present.
+
+*  Add following as a new line entry:
+
+```
+r-base ==4.1.1
+```
+
+??? info "Check a valid line break"
+    Since we are creating a new file and only adding a single line of text, when we save this text file, we should confirm that it is the [end of the line](https://en.wikipedia.org/wiki/Newline). This is usually recognized by pressing the ++enter++. Unix systems recognizes such line break using an invisible `$` sign which you can confirm by running `cat -e "${CONDA_PREFIX}"/conda-meta/pinned`
+
+    ```
+    r-base ==4.1.1$
+    $
+    ```
+
+    With each line break, you will notice `$` sign, e.g., two lines in my case. You may remove a second line by editing file again but make sure to run `cat -e "${CONDA_PREFIX}"/conda-meta/pinned` to check a valid line break.
 
 You may [pin](https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-pkgs.html#preventing-packages-from-updating-pinning) only part of [the major and minor version](https://en.wikipedia.org/wiki/Software_versioning), i.e., to allow updates from 4.1.1 to 4.1.2 or 4.1.3 but not from 4.1.1 to 4.2.*. However, I rather freeze the specific version and update to builds at the later date, if need arises. To do so, remove the pinned entry from `"${CONDA_PREFIX}"/conda-meta/pinned` and do `mamba update r-base=4.1.2` or other version. Since [R developer team](https://cran.r-project.org/doc/manuals/r-release/NEWS.html) updates [major.minor version](https://en.wikipedia.org/wiki/Software_versioning) of R every quarter or so, I try to keep those R versions in a separate env rather updating as certain R packages may throw an error with such major updates.
 
@@ -222,6 +257,7 @@ To search for packages, prefer using [anaconda website](https://anaconda.org/) a
 mamba install -c conda-forge r-tidyverse r-tidymodels r-devtools r-biocmanager
 mamba install -c conda-forge gnupg git rsync vim openjdk r-rjava
 mamba install -c conda-forge bedtools pybedtools bedops
+mamba install -c conda-forge matplotlib scikit-learn
 ```
 
 *   Reticulate and rpy2 packages will allow us to use R and python interchangeably in the same R script or python notebook, respectively! [Read details about reticulate on RStudio website](https://rstudio.github.io/reticulate/) and [rpy2 here](https://rpy2.github.io/).
@@ -370,7 +406,7 @@ Since we already have setup _yoda_ env for R, you can now install additional R l
 
 ## Install essentials
 
-This can again vary per user's need and optional. If you find errors compiling packages, you may end up needing installing respective dev libraries, e.g., libiconv, zlib, etc. if they are not already installed in the current (_yoda_ in this case) conda env.
+This can again vary per user's need and optional. If you find errors compiling packages, you may end up installing respective dev libraries, e.g., libiconv, zlib, etc. if they are not already installed in the current (_yoda_ in this case) conda env.
 
 ```sh
 mamba install -c conda-forge wget curl rsync libiconv parallel ipyparallel
@@ -430,7 +466,6 @@ R
 ```r
 library(IRkernel)
 installspec(name = "yoda_r41", displayname = "yoda_r41", user = TRUE)
-q()
 
 ## quit R session
 q(save = "no")
@@ -462,6 +497,161 @@ nano kernel.json
 
 >Rename `"display_name": "Bash"` to `"display_name": "yoda_bash"`
 
+### kernel loading
+
+Following completion of the entire setup, we are going to run JupyterLab from the _base_ env. However, on daily basis, we like to access Python and R from _yoda_ and not _base_[^noRinbase]. Default kernel setup above should let jupyterlab handle conda env specific python but not so for other kernels.
+
+However, I have noticed issues running Python and R from a non _base_ conda env as sometimes packages requiring shared libraries may throw an error as such shared libraries are either missing in _base_ env or have a different version than one in the current env, i.e., _yoda_ env where package was originally installed or compiled.
+
+I mitigate such issues by **loading a valid bash env prior to initializing kernel**, e.g., I will wrap a default jupyter kernel settings into a bash script (wrapper) and will activate a valid conda env, e.g., _yoda_ in this case prior to initializing _yoda_ specific Python or R kernel. That way, kernel will consistently inherit a valid login (bash) env for the respective conda env.
+
+[^noRinbase]: Notice that there is no R in the _base_ env. So, hitting R will not start R session unless you do `mamba activate yoda`!
+
+#### yoda python
+
+*   Create a new kernel wrapper matching name of kernel we like to edit, e.g., _/projects/verhaak-lab/amins/hpcenv/opt/kernels/wrap_yoda_py310_
+
+```sh
+mkdir -p /projects/verhaak-lab/amins/hpcenv/opt/kernels
+touch /projects/verhaak-lab/amins/hpcenv/opt/kernels/wrap_yoda_py310
+
+# make file executable
+chmod 700 /projects/verhaak-lab/amins/hpcenv/opt/kernels/wrap_yoda_py310
+```
+
+*   Add following to _wrap_yoda_py310_ file. Change user paths where applicable.
+
+```
+#!/bin/bash
+
+## Load env before loading jupyter kernel
+## @sbamin
+
+## https://github.com/jupyterhub/jupyterhub/issues/847#issuecomment-260152425
+
+#### Activate CONDA in subshell ####
+## Read https://github.com/conda/conda/issues/7980
+# I am using conda instead of mamba to activate env
+# as somehow I notices warnings/errors sourcing
+# mamba.sh in sub-shells.
+CONDA_BASE=$(conda info --base) && \
+source "${CONDA_BASE}"/etc/profile.d/conda.sh && \
+conda activate yoda
+#### END CONDA SETUP ####
+
+# this is the critical part, and should be at the end of your script:
+exec /projects/verhaak-lab/amins/hpcenv/mambaforge/envs/yoda/bin/python -m ipykernel_launcher "$@"
+
+## Make sure to update corresponding kernel.json under ~/.local/share/jupyter/kernels/<kernel_name>/kernel.json
+
+#_end_
+```
+
+*   Now, adjust kernel settings.
+
+```sh
+## go to kernel base dir
+cd ~/.local/share/jupyter/kernels/
+
+## there should be yoda_py310 directory or
+## one matching --name yoda_py310 argument
+## we used above when installing python kernel
+cd yoda_py310
+
+## edit kernel.json
+nano kernel.json
+```
+
+*   Replace contents of _kernel.json_ with following:
+
+```json
+{
+ "argv": [
+  "/projects/verhaak-lab/amins/hpcenv/opt/kernels/wrap_yoda_py310",
+  "-f",
+  "{connection_file}"
+ ],
+ "display_name": "yoda_py310",
+ "language": "python",
+ "metadata": {
+  "debugger": true
+ }
+}
+```
+
+#### yoda R
+
+Now, we can reconfigure R kernel for _yoda_ same as above but with a few changes in the wrapper script.
+
+*   Create a new kernel wrapper for R, e.g., _/projects/verhaak-lab/amins/hpcenv/opt/kernels/wrap_yoda_r41_
+
+```sh
+mkdir -p /projects/verhaak-lab/amins/hpcenv/opt/kernels
+touch /projects/verhaak-lab/amins/hpcenv/opt/kernels/wrap_yoda_r41
+
+# make file executable
+chmod 700 /projects/verhaak-lab/amins/hpcenv/opt/kernels/wrap_yoda_r41
+```
+
+*   Add following to _wrap_yoda_r41_ file. Change user paths where applicable.
+
+```
+#!/bin/bash
+
+## Load env before loading jupyter kernel @sbamin https://github.com/jupyterhub/jupyterhub/issues/847#issuecomment-260152425
+
+#### Activate CONDA in subshell ####
+## Read https://github.com/conda/conda/issues/7980
+CONDA_BASE=$(conda info --base) && \
+source "${CONDA_BASE}"/etc/profile.d/conda.sh && \
+conda activate yoda
+#### END CONDA SETUP ####
+
+## this is the critical part, and should be at the end of your script:
+## path to R and arguments come from original kernel.json under
+## ~/.local/share/jupyter/kernels/yoda_r41/ directory.
+
+## In some cases, path to R may differ and may originate from
+## .../envs/yoda/lib64/R/bin/R instead of .../envs/rey/lib64/R/bin/R
+
+## If so, adjust path to R here accordingly.
+exec /projects/verhaak-lab/amins/hpcenv/mambaforge/envs/yoda/lib/R/bin/R --slave -e "IRkernel::main()" --args "$@"
+
+## Make sure to update corresponding kernel.json under ~/.local/share/jupyter/kernels/<kernel_name>/kernel.json
+
+#_end_
+```
+
+*   Now, adjust kernel settings.
+
+```sh
+## go to kernel base dir
+cd ~/.local/share/jupyter/kernels/
+
+## there should be yoda_py310 directory or
+## one matching --name yoda_py310 argument
+## we used above when installing python kernel
+cd yoda_r41
+
+## edit kernel.json
+nano kernel.json
+```
+
+*   Replace contents of _kernel.json_ with following:
+
+```json
+{
+ "argv": [
+  "/projects/verhaak-lab/amins/hpcenv/opt/kernels/wrap_yoda_r41",
+  "{connection_file}"
+ ],
+ "display_name": "yoda_r41",
+ "language": "R"
+}
+```
+
+Done! Next time you run jupyter, you should have a new julia kernel in JupyterLab.
+
 ### Configure JupyterLab
 
 Once we have installed env specific kernels as in _yoda_ (and other envs, if a ny), now it's a time configure JupyterLab in the _base_ env.
@@ -479,15 +669,15 @@ conda deactivate
 ```sh
 ## return to home dir
 cd "${HOME}" && \
-jupyter notebook --generate-config
+jupyter server --generate-config
 ```
 
 >Writing default config to: /home/userid/.jupyter/jupyter_notebook_config.py
 
-!!! danger "Secure jupyterlab server"
-    It is critical that you harden security of jupyterlab server. Default configuration is not good enough (in my view) for launching notebook server over HPC, especially without SSL (or _https_) support. Setting up individual security steps is beyond scope of this documentation. However, I strongly recommend reading official documentation on [SSL setup](https://jupyter-notebook.readthedocs.io/en/stable/public_server.html), [configuring cookie and login token](https://jupyterhub.readthedocs.io/en/stable/getting-started/security-basics.html), and [notebook password](https://jupyter-notebook.readthedocs.io/en/stable/security.html).
+!!! danger "Secure Jupyter Server"
+    It is critical that you harden security of jupyterlab server. Default configuration is not good enough (in my view) for launching notebook server over HPC, especially without SSL (or _https_) support. Setting up individual security steps is beyond scope of this documentation. However, I strongly recommend reading official documentation on [running a public Jupyter Server](https://jupyter-server.readthedocs.io/en/latest/operators/public-server.html) and [security in the jupyter server](https://jupyter-server.readthedocs.io/en/latest/operators/security.html).
 
-*   Example config for _/home/userid/.jupyter/jupyter_notebook_config.py_. Please do not copy and paste these options without knowing [underlying details](https://jupyter-notebook.readthedocs.io/en/stable/config.html).
+*   Example config for _/home/userid/.jupyter/jupyter_server_config.py_. **Please do not copy and paste these options** without knowing [underlying details](https://jupyter-notebook.readthedocs.io/en/stable/config.html).
 
 ```py
 ## leave commented out portion of default config as it is.
@@ -497,43 +687,45 @@ jupyter notebook --generate-config
 #### NOTEBOOK CONFIGS ####
 ## SSL settings
 ## read documentation for details
-c.NotebookApp.certfile = u'/home/foo/xyz/jp.crt'
-c.NotebookApp.keyfile = u'/home/foo/xyz/jp.pem'
+c.ServerApp.certfile = u'/home/foo/xyz/jp.crt'
+c.ServerApp.keyfile = u'/home/foo/xyz/jp.pem'
 
 ## openssl rand -hex 32 > /home/foo/xyz/dummy_file
 c.JupyterHub.cookie_secret_file = '/home/foo/xyz/dummy_file'
-c.NotebookApp.open_browser = False
+c.ServerApp.open_browser = False
 
 ## token used to programmatically login to jupyter,
 ## e.g., via Atom Hydrogen package
 ## alphanumeric secret string - longer the better.
-c.NotebookApp.token = 'dummy_login_token_replace_with_a_secret_token'
-c.NotebookApp.allow_password_change = False
+c.ServerApp.token = 'dummy_login_token_replace_with_a_secret_token'
+c.ServerApp.allow_password_change = False
 
 ## should be set to False
 ## unsafe to set True from https security point of view
-c.NotebookApp.disable_check_xsrf = False
+c.ServerApp.disable_check_xsrf = False
 
 ## use one of available options: See documentation
 c.Application.log_level = 'INFO'
 
 ## use login shell
-c.NotebookApp.terminado_settings={'shell_command':['bash', '-l']}
+c.ServerApp.terminado_settings={'shell_command':['bash', '-l']}
 ## END ##
 ```
 
-*   Once you customize _/home/userid/.jupyter/jupyter_notebook_config.py_ file, make sure to generate a secret and strong password using `jupyter notebook password` command. Your password then will be written in encrypted format in _/home/userid/.jupyter/jupyter_notebook_config.json_ file.
+*   Once you customize _/home/userid/.jupyter/jupyter_notebook_config.py_ file, **make sure to generate a secret and strong password using** `jupyter server password` command. Your password then will be written in encrypted format in _/home/userid/.jupyter/jupyter_server_config.json_ file.
 *   Make both files read/write-only by you.
 
 ```sh
 ## for directory, we use permission 700
 chmod 700 ~/.jupyter
 ## location where cookie secret is stored
+## prefer a secure and stable path
+mkdir -p ~/xyz 
 chmod 700 ~/xyz
 
 # For files, we use permission 600
-chmod 600 ~/.jupyter/jupyter_notebook_config.py
-chmod 600 ~/.jupyter/jupyter_notebook_config.json
+chmod 600 ~/.jupyter/jupyter_server_config.py
+chmod 600 ~/.jupyter/jupyter_server_config.json
 ## location of cookie secret file
 chmod 600 ~/xyz/dummy_file
 ```
@@ -658,24 +850,21 @@ conda deactivate
 
 ## Start JupyterLab
 
-*   Optional: Install several tools in _base_ env
+*   **Optional:** Install several tools in _base_ env.
 
 ```sh
 # I use dos2unix often to fix line endings for
 # files created from windows (dos2unix) or mac (mac2unix)
-# jupyter_http_over_ws is an optional package.
-mamba install -c conda-forge dos2unix jupyter_http_over_ws
+
+## A few other packages for jupyterlab extensions
+mamba install -c conda-forge jupyter_http_over_ws jupyterlab-link-share dos2unix
 
 ## check for successful install
 echo $?
 
 # Run only if you have installed jupyter_http_over_ws AND
 # you are familiar with managing jupyter server backend.
-jupyter serverextension enable --py jupyter_http_over_ws
-
-# additional tools
-mamba install -c conda-forge jupyter_contrib_nbextensions
-echo $?
+# jupyter server extension enable --py jupyter_http_over_ws
 ```
 
 *   Test jupyterlab run: Please [read documentation](https://jupyter-notebook.readthedocs.io/en/stable/public_server.html) carefully on using SSL option and defining port and IP.
@@ -692,13 +881,13 @@ mkdir -p ~/tmp/jupyter/sumner
 REMOTEIP="$(hostname -I | head -n1 | xargs)"
 
 ## test run from a login or compute node
-jupyter notebook --no-browser --certfile="${MYPEM}" --keyfile "${MYKEY}" --ip="${REMOTEIP}" --port="$MYPORT" >> ~/tmp/jupyter/sumner/runtime.log 2>&1
+jupyter lab --no-browser --certfile="${MYPEM}" --keyfile "${MYKEY}" --ip="${REMOTEIP}" --port="$MYPORT" >> ~/tmp/jupyter/sumner/runtime.log 2>&1
 ```
 
 *   Once a jupyter session begins and assuming you are on a secure local area network, you can open URL: `https://<REMOTEIP>:<PORT>/lab` to launch jupyter lab.
 
-!!! info "Run jupyterlab from a compute and not login node"
-    For longer running and compute-intensive jupyterlab sessions, it is preferable to run jupyterlab from a compute and not a login node. Talk to your HPC staff on policies regarding use of compute node to start a jupyter session.
+!!! warning "Run jupyterlab from a compute and not login node"
+    **Avoid running JupyterLab server on a login node.** It will most likely be killed by HPC admins. For longer running and compute-intensive jupyterlab sessions, it is preferable to run jupyterlab from a compute and not a login node. This requires series of secure port forwarding which is beyond the scope of current documentation. However, your HPC may already have support for running JupyterLab on a compute node, e.g, similar to this one at [Univ. of Bern](https://hpc-unibe-ch.github.io/software/JupyterLab.html) or [Princeton Univ.](https://researchcomputing.princeton.edu/support/knowledge-base/jupyter). Talk to your HPC staff for policies on running JupyterLab server.
 
 Before continuing setup (not over yet!), let's logout and login first from interactive job and exit HPC.
 
@@ -710,6 +899,3 @@ ssh sumner
 ```
 
 [In Part 3](../sumner_3/), I will finalize setting up Sumner (or CPU-based) HPC and also install a dedicated conda env for Winter (GPU-based) HPC.
-
-END
-

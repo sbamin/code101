@@ -37,9 +37,16 @@ echo "Start building ${REPO}..."
 
 ## build docs
 rm -rf "${WEBDIR}" && \
-mkdir -p "${WEBDIR}" && \
-mkdocs build --clean --site-dir "${WEBDIR}" && echo -e "\nINFO: Built updated docs for ${REPO}\n" && \
-mkdocs gh-deploy --remote-branch "${WEB_BRANCH}" --clean --site-dir "${WEBDIR}" -m "published commit: {sha} and mkdocs {version}" && \
-echo "Successfully updated ${WEBURL} to ${REPO}:${WEB_BRANCH}"
+mkdir -p "${WEBDIR}"
+
+mike list --branch www
+mike deploy --branch www --push --update-aliases 1.1 latest
+## mike set-default -b www --push latest
+mike list --branch www
+
+# mkdocs build --clean --site-dir "${WEBDIR}" && echo -e "\nINFO: Built updated docs for ${REPO}\n" && \
+# mkdocs gh-deploy --remote-branch "${WEB_BRANCH}" --clean --site-dir "${WEBDIR}" -m "published commit: {sha} and mkdocs {version}" && \
+# echo "Successfully updated ${WEBURL} to ${REPO}:${WEB_BRANCH}"
+
 
 ## END ##
