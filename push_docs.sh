@@ -39,8 +39,8 @@ echo "Start building ${REPO}..."
 rm -rf "${WEBDIR}" && \
 mkdir -p "${WEBDIR}"
 
-## mike list --branch www
-## mike deploy --branch www --push --update-aliases 1.2 latest
+mike list --branch www
+mike deploy --branch www --push --update-aliases 1.1 latest
 ## mike set-default -b www --push latest
 mike list --branch www
 
