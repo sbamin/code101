@@ -341,8 +341,8 @@ Proceed (Y/n)? Y
 *   Remove a related extension.
 
 ```sh
-jupyter serverextension disable jupyterlab_sql
-jupyter labextension uninstall jupyterlab-sql
+jupyter server extension disable jupyterlab_sql
+jupyter lab extension disable jupyterlab-sql
 ```
 
 *   Rebuild existing jupyter extensions.
@@ -350,11 +350,9 @@ jupyter labextension uninstall jupyterlab-sql
 ```sh
 jupyter lab build
 
-## update all extensions
-jupyter labextension update --all
-
 # check enabled extensions
-jupyter serverextension list
+jupyter lab extension list
+jupyter server extension list
 echo $?
 ```
 
@@ -403,17 +401,15 @@ Successfully installed jupyterlab-sql-0.3.3
 *   Build required jupyterlab extension for SQL
 
 ```sh
-jupyter serverextension enable jupyterlab_sql --py --sys-prefix
+jupyter server extension enable jupyterlab_sql --py --sys-prefix
 
 ## Rebuild all of jupyterlab extensions
 ## this may take a while (~5 minutes)
 jupyter lab build
 
-## update all extensions
-jupyter labextension update --all
-
 # check enabled extensions
-jupyter serverextension list
+jupyter lab extension list
+jupyter server extension list
 ```
 
 *   [Read on how-to use SQL GUI](https://github.com/pbugnion/jupyterlab-sql) 
@@ -606,9 +602,12 @@ mamba install -c conda-forge pocl
 
 Optional: [Jupytext](mamba install -c conda-forge) allows running jupyter notebooks as text or markdown files similar to running scripts for R, Python, and Julia. 
 
-*   Install jupytext in _base_ env. Note compatibility for related jupyterlab extension at https://github.com/mwouts/jupytext Current version of jupytext (1.13.3) is only compatible with JupyterLab 3+ (I have v3.2.4 and so all good!)
+*   Install jupytext in _base_ env if if is not installed before. Note compatibility for related jupyterlab extension at https://github.com/mwouts/jupytext Current version of jupytext (1.13.3) is only compatible with JupyterLab 3+ (I have v3.2.4 and so all good!)
 
 ```sh
+mamba deactivate
+mamba activate base
+
 mamba install -c conda-forge jupytext
 ```
 
@@ -616,12 +615,15 @@ mamba install -c conda-forge jupytext
 
 ```sh
 ## list enabled extension
-jupyter serverextension list
+jupyter lab extension list
+jupyter server extension list
 
 ## update all extensions
-jupyter labextension update --all
+jupyter lab extension update --all
+jupyter server extension update --all
 
-jupyter serverextension list
+jupyter lab extension list
+jupyter server extension list
 ```
 
 I have also installed [jupyter_contrib_nbextensions](https://jupyter-contrib-nbextensions.readthedocs.io/en/latest/index.html) extension earlier in [Part 2](../sumner_2/#start-jupyterlab) which allows additional configuration for jupyter notebook. This is a **beta extension and an optional** setup.

@@ -257,6 +257,7 @@ To search for packages, prefer using [anaconda website](https://anaconda.org/) a
 mamba install -c conda-forge r-tidyverse r-tidymodels r-devtools r-biocmanager
 mamba install -c conda-forge gnupg git rsync vim openjdk r-rjava
 mamba install -c conda-forge bedtools pybedtools bedops
+mamba install -c conda-forge matplotlib scikit-learn
 ```
 
 *   Reticulate and rpy2 packages will allow us to use R and python interchangeably in the same R script or python notebook, respectively! [Read details about reticulate on RStudio website](https://rstudio.github.io/reticulate/) and [rpy2 here](https://rpy2.github.io/).
@@ -668,15 +669,15 @@ conda deactivate
 ```sh
 ## return to home dir
 cd "${HOME}" && \
-jupyter notebook --generate-config
+jupyter server --generate-config
 ```
 
 >Writing default config to: /home/userid/.jupyter/jupyter_notebook_config.py
 
-!!! danger "Secure jupyterlab server"
-    It is critical that you harden security of jupyterlab server. Default configuration is not good enough (in my view) for launching notebook server over HPC, especially without SSL (or _https_) support. Setting up individual security steps is beyond scope of this documentation. However, I strongly recommend reading official documentation on [SSL setup](https://jupyter-notebook.readthedocs.io/en/stable/public_server.html), [configuring cookie and login token](https://jupyterhub.readthedocs.io/en/stable/getting-started/security-basics.html), and [notebook password](https://jupyter-notebook.readthedocs.io/en/stable/security.html).
+!!! danger "Secure Jupyter Server"
+    It is critical that you harden security of jupyterlab server. Default configuration is not good enough (in my view) for launching notebook server over HPC, especially without SSL (or _https_) support. Setting up individual security steps is beyond scope of this documentation. However, I strongly recommend reading official documentation on [running a public Jupyter Server](https://jupyter-server.readthedocs.io/en/latest/operators/public-server.html) and [security in the jupyter server](https://jupyter-server.readthedocs.io/en/latest/operators/security.html).
 
-*   Example config for _/home/userid/.jupyter/jupyter_notebook_config.py_. Please do not copy and paste these options without knowing [underlying details](https://jupyter-notebook.readthedocs.io/en/stable/config.html).
+*   Example config for _/home/userid/.jupyter/jupyter_server_config.py_. **Please do not copy and paste these options** without knowing [underlying details](https://jupyter-notebook.readthedocs.io/en/stable/config.html).
 
 ```py
 ## leave commented out portion of default config as it is.
@@ -686,43 +687,45 @@ jupyter notebook --generate-config
 #### NOTEBOOK CONFIGS ####
 ## SSL settings
 ## read documentation for details
-c.NotebookApp.certfile = u'/home/foo/xyz/jp.crt'
-c.NotebookApp.keyfile = u'/home/foo/xyz/jp.pem'
+c.ServerApp.certfile = u'/home/foo/xyz/jp.crt'
+c.ServerApp.keyfile = u'/home/foo/xyz/jp.pem'
 
 ## openssl rand -hex 32 > /home/foo/xyz/dummy_file
 c.JupyterHub.cookie_secret_file = '/home/foo/xyz/dummy_file'
-c.NotebookApp.open_browser = False
+c.ServerApp.open_browser = False
 
 ## token used to programmatically login to jupyter,
 ## e.g., via Atom Hydrogen package
 ## alphanumeric secret string - longer the better.
-c.NotebookApp.token = 'dummy_login_token_replace_with_a_secret_token'
-c.NotebookApp.allow_password_change = False
+c.ServerApp.token = 'dummy_login_token_replace_with_a_secret_token'
+c.ServerApp.allow_password_change = False
 
 ## should be set to False
 ## unsafe to set True from https security point of view
-c.NotebookApp.disable_check_xsrf = False
+c.ServerApp.disable_check_xsrf = False
 
 ## use one of available options: See documentation
 c.Application.log_level = 'INFO'
 
 ## use login shell
-c.NotebookApp.terminado_settings={'shell_command':['bash', '-l']}
+c.ServerApp.terminado_settings={'shell_command':['bash', '-l']}
 ## END ##
 ```
 
-*   Once you customize _/home/userid/.jupyter/jupyter_notebook_config.py_ file, make sure to generate a secret and strong password using `jupyter notebook password` command. Your password then will be written in encrypted format in _/home/userid/.jupyter/jupyter_notebook_config.json_ file.
+*   Once you customize _/home/userid/.jupyter/jupyter_notebook_config.py_ file, **make sure to generate a secret and strong password using** `jupyter server password` command. Your password then will be written in encrypted format in _/home/userid/.jupyter/jupyter_server_config.json_ file.
 *   Make both files read/write-only by you.
 
 ```sh
 ## for directory, we use permission 700
 chmod 700 ~/.jupyter
 ## location where cookie secret is stored
+## prefer a secure and stable path
+mkdir -p ~/xyz 
 chmod 700 ~/xyz
 
 # For files, we use permission 600
-chmod 600 ~/.jupyter/jupyter_notebook_config.py
-chmod 600 ~/.jupyter/jupyter_notebook_config.json
+chmod 600 ~/.jupyter/jupyter_server_config.py
+chmod 600 ~/.jupyter/jupyter_server_config.json
 ## location of cookie secret file
 chmod 600 ~/xyz/dummy_file
 ```
@@ -847,24 +850,21 @@ conda deactivate
 
 ## Start JupyterLab
 
-*   Optional: Install several tools in _base_ env
+*   **Optional:** Install several tools in _base_ env.
 
 ```sh
 # I use dos2unix often to fix line endings for
 # files created from windows (dos2unix) or mac (mac2unix)
-# jupyter_http_over_ws is an optional package.
-mamba install -c conda-forge dos2unix jupyter_http_over_ws
+
+## A few other packages for jupyterlab extensions
+mamba install -c conda-forge jupyter_http_over_ws jupyterlab-link-share dos2unix
 
 ## check for successful install
 echo $?
 
 # Run only if you have installed jupyter_http_over_ws AND
 # you are familiar with managing jupyter server backend.
-jupyter serverextension enable --py jupyter_http_over_ws
-
-# additional tools
-mamba install -c conda-forge jupyter_contrib_nbextensions
-echo $?
+# jupyter server extension enable --py jupyter_http_over_ws
 ```
 
 *   Test jupyterlab run: Please [read documentation](https://jupyter-notebook.readthedocs.io/en/stable/public_server.html) carefully on using SSL option and defining port and IP.
@@ -881,7 +881,7 @@ mkdir -p ~/tmp/jupyter/sumner
 REMOTEIP="$(hostname -I | head -n1 | xargs)"
 
 ## test run from a login or compute node
-jupyter notebook --no-browser --certfile="${MYPEM}" --keyfile "${MYKEY}" --ip="${REMOTEIP}" --port="$MYPORT" >> ~/tmp/jupyter/sumner/runtime.log 2>&1
+jupyter lab --no-browser --certfile="${MYPEM}" --keyfile "${MYKEY}" --ip="${REMOTEIP}" --port="$MYPORT" >> ~/tmp/jupyter/sumner/runtime.log 2>&1
 ```
 
 *   Once a jupyter session begins and assuming you are on a secure local area network, you can open URL: `https://<REMOTEIP>:<PORT>/lab` to launch jupyter lab.
