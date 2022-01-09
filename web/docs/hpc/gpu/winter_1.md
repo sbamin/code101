@@ -132,7 +132,7 @@ Cuda compilation tools, release 11.1, V11.1.105
 Build cuda_11.1.TC455_06.29190527_0
 ```
 
-*   Check GPU usage activity on the compute node using `nvidia-smi`. This command is from a system-installed cuda libraries, typically under `/usr/bin` or `/usr/local/bin`.
+*   Check GPU usage activity on the compute node using `nvidia-smi`. This command is from a system-installed cuda libraries, typically under `/usr/bin` or `/usr/local/bin`. On Winter HPC at JAX, it is only available on compute nodes and not on a login node.
 
 ## Jupyter kernels
 
@@ -179,7 +179,7 @@ q(save = "no")
         ## Read https://github.com/conda/conda/issues/7980
         CONDA_BASE=$(conda info --base) && \
         source "${CONDA_BASE}"/etc/profile.d/conda.sh && \
-        conda activate tf-gpu
+        conda activate rey
         #### END CONDA SETUP ####
 
         ## Load additional CUDA drivers, toolkit, etc.
@@ -268,9 +268,50 @@ unset R_HOME R_ENVIRON_USER
 
 ## Optional Setup
 
+Following packages are optional for setup.
+
 ### Tensorboard
 
+[Tensorboard](https://www.tensorflow.org/tensorboard) graphical user interface (GUI) ships with Tensorflow 2 and so does not require additional configuration.
+
+*   Check version for tensorflow and tensorboard
+
+```sh
+## in rey env
+python -c 'import tensorflow as tf; print(tf.__version__)' #2.6.2 or higher
+python -c 'import tensorboard as tb; print(tb.__version__)' #2.6.0 or higher
+```
+
+*   Checkout [getting started guide](https://www.tensorflow.org/tensorboard/get_started) for more on how to use GUI app. If tensorboard python notebook extension, `%load_ext tensorboard` fails to initialize tensorboard within notebook, you can manually initialize tensorboard using a terminal command as follows: 
+
+```sh
+tensorboard serve --logdir logs --host <IP address to bind to>
+```
+
+>where IP address can be a localhost or `hostname -I` as long as it is on the secure network. Tensorboard should be accessible at an unsecure http address shown in the output of above command.
+
+*   To quit tensorboard web server on the terminal, press ++ctrl+c++.
+
 ### TensorRT
+
+[NVIDIA(r) TensorRT(tm)](https://developer.nvidia.com/tensorrt) a software development kit (SDK) for NVIDIA compliant GPU cards. Conda does not provide TensorRT package, so we need to install it using [getting started guide](https://developer.nvidia.com/tensorrt-getting-started) and [installation using tarball](https://docs.nvidia.com/deeplearning/tensorrt/install-guide/index.html#installing-tar) instructions. This requires membership into NVIDIA developer program.
+
+*   Download tarball specific to CUDA and cuDNN version as determined by following commands. Accordingly, I have downloaded 
+
+TensorRT-8.2.2.1.Linux.x86_64-gnu.cuda-11.4.cudnn8.2.tar.gz
+TensorRT-6.0.1.5.CentOS-7.6.x86_64-gnu.cuda-10.1.cudnn7.6.tar.gz.
+
+```sh
+## CUDA version, 11.1
+nvcc --version
+## cuDNN version 8.2
+cat ${CONDA_PREFIX}/include/cudnn_version.h | grep CUDNN_MAJOR -A 2
+```
+
+*  
+
+
+
 
 ### Image Classification
 
@@ -283,3 +324,14 @@ Libraries specific to cell segmentation
 #### Stardist
 
 ## Update bash startup
+
+Finally, I am tweaking [bash startup sequence](../../cpu/sumner_3/#bash-startup) that we setup earlier, such that it can allow loading GPU-specific bash env only when we login to Winter GPU HPC and not on Sumner CPU HPC. I have made following changes to bash startup. You can :octicons-file-code-16: [download my bash startup files here]({{ repo.url }}{{ repo.tree }}/confs/hpc/user_env/).
+
+*   Update `SET PATH` block of *~/.bash_profile* to reset PATH for Winter GPU. See my notes under `elif [[ "$(hostname)" == *"winter"* ]]; then` section in :octicons-file-code-16: an example [.bash_profile]({{ repo.url }}{{ repo.blob }}/confs/hpc/user_env/.bash_profile) file.
+*   Update *~/.profile.d/void/VW01_set_winter_gpu.sh* to load Winter specific settings. See more into an example [VW01_set_winter_gpu.sh]({{ repo.url }}{{ repo.blob }}/confs/hpc/user_env/.profile.d/void/VW01_set_winter_gpu.sh) file.
+
+Logout and login again to Winter HPC. You will see a near identical bash prompt like Sumner HPC, e.g., `user@winter-log1`. However, when you check `echo $PATH` output and `echo $CONDA_DEFAULT_ENV`, you will notice that a default conda env in Winter HPC is now _rey_ while in Sumner HPC, it is _base_ (sometimes called _root_). Of course, you can revert to base or any other conda env in Winter HPC by doing `mamba deactivate` (because we changed from base to rey during bash startup) and then `mamba activate base` (or yoda, or any other env).
+
+## Done!
+
+Hope you have found this documentation helpful to get you started with HPC setup. I will post a few external resources on getting started guide to learn programming in Python, R, and more. Best wishes!
