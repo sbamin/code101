@@ -96,6 +96,12 @@ export RUNNING_JOBS RVDISKSTAT T1CAP T2CAP FASTSTORECAP RVDISKSTAT MAXQ_BATCH MA
 ## default user modules ##
 module use --apend "${HPCMODULES}"
 
+## do not specify specific version and instead load
+## default version managed by HPC Admin.
+## default version varies across HPCs, e.g., CPU and GPU
+## HPC may have a different slurm profile.
+module load slurm
+
 ## PS: we can't use mypathmunge here as we did not define it upstream!
 ## Instead, we hardcoded paths for julia, singularity, and other apps in PATH
 ## and LD_LIBRARY_PATH (if applicable) above.
