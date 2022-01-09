@@ -18,7 +18,7 @@ copyright: >-
 theme:
   name: material
   custom_dir: overrides
-  logo: /assets/images/fixed/sitelogo.png
+  logo: assets/images/fixed/sitelogo.png
 
   # 404 page
   static_templates:
@@ -100,6 +100,9 @@ extra:
     provider: google
     property: UA-307297-1
   site_keywords: "linux,getting started,computing,hpc, conda,bash,jupyter,programming,biology,bioinformatics"
+  version:
+    provider: mike
+    default: latest
 
 # Extensions
 markdown_extensions:
