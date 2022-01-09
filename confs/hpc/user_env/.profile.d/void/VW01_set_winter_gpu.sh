@@ -14,12 +14,16 @@
 ## before sourcing ~/.profile.d/void/*.sh file(s).
 
 ## ToDo: Setup Winter GPU startup
-# if [[ "$(hostname)" == *"winter"* ]]; then
-# 	. "${CONDA_BASE}"/etc/profile.d/conda.sh
-# 	CONDA_CHANGEPS1=false conda activate rey
-# 	#### END CONDA SETUP ####
+if [[ "$(hostname)" == *"winter"* ]]; then
+	### START CONDA SETUP ###
+    CONDA_BASE=$(conda info --base) && \
+    source "${CONDA_BASE}"/etc/profile.d/conda.sh && \
+    conda activate rey
+	#### END CONDA SETUP ####
 
-# 	module load s7cuda/toolkit/10.1.243
-# fi
+    ## Load additional CUDA drivers, toolkit, etc.
+    ## if applicable.
+    # module load cuda11.1/toolkit/11.1.1
+fi
 
 ## END ##

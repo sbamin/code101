@@ -158,7 +158,17 @@ elif [[ "$(hostname)" == *"winter"* ]]; then
 	## You may change PATH below to source GPU-compatible conda env, e.g.,
 	## Replace ${HPCCONDA}/bin with ${HPCCONDA}/envs/rey/bin and
 	## optionally add paths to CUDA and other GPU-specific library bins
-	PATH="${HOME}/bin:${HPCCONDA}/bin:${HPCCONDA}/condabin:${HPCOPT}/bin:${HOME}/.local/bin:${HPCOPT}/bin:${HPCLOCAL}/bin${PATH:+:$PATH}:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin"
+
+	## PS: Know that we are resetting PATH here after winter-specific
+	## settings in void/VW01_set_winter_gpu.sh settings above.
+	## So, ensure that PATH below matches type of configuration paths
+	## you would expect per your cofigs in void/VW01_set_winter_gpu.sh
+
+	## Here, I am overriding PATH for default base conda env with
+	##  GPU-specific conda env, rey. If you do so, make sure to also
+	## activate respective conda env, rey in void/VW01_set_winter_gpu.sh
+	## so that conda specific env vars are set properly.
+	PATH="${HOME}/bin:${HPCCONDA}/envs/rey/bin:${HPCCONDA}/condabin:${HPCOPT}/bin:${HOME}/.local/bin:${HPCOPT}/bin:${HPCLOCAL}/bin${PATH:+:$PATH}:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin"
 	MYENV="WINTER7"
 else
 	## same as default or CPU-compatible PATH
