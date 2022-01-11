@@ -6,9 +6,14 @@ mkdir -p "${HOME}"/conda_env_bkup/sumner
 ## get current conda env name
 CURRENT_CONDA_ENV=${CONDA_DEFAULT_ENV:-"root"}
 
+# TODO Update conda bkup script
+#  use mamba instead of conda
+#  labels: enhancement, help wanted, ToDo
+#  assignees: sbamin
+#  milestone: rolling
+
 BKUP_LOC="${HOME}/conda_env_bkup/sumner/${CURRENT_CONDA_ENV}/${TSTAMP}"
 mkdir -p "${BKUP_LOC}"
-
 
 ## make output file names
 BKUP_ENV=$(printf "%s_environment_%s.yml" "${CURRENT_CONDA_ENV}" "$TSTAMP")
