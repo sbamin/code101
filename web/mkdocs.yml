@@ -55,7 +55,7 @@ theme:
   icon:
     logo: logo
     repo: fontawesome/brands/git-square
-  favicon: /assets/images/fixed/favicon.png
+  favicon: assets/images/fixed/favicon.ico
 
 # Plugins
 plugins:
