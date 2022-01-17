@@ -1,8 +1,7 @@
 ---
-title: "Setting up GPU env - Part 1"
-description: "Winter HPC Setup 2021: Part 1"
-keywords: "winter,hpc,gpu,tensorflow,keras,pytorch,machine_learning,conda,jupyter"
-wip: true
+title: "Setting up GPU env"
+description: "Winter HPC Setup 2021"
+keywords: "winter,hpc,gpu,tensorflow,keras,pytorch,machine_learning,conda,jupyter,segmentation"
 ---
 
 Winter HPC at JAX is a GPU-based computing cluster and it is powered by [NVIDIA(r) V100 series](https://www.nvidia.com/en-us/data-center/v100/) GPU cards. If you are working on GPU-based HPC or linux env, following page should guide you on setting up commonly used GPU libraries, e.g., [Tensorflow 2](https://www.tensorflow.org/), [Keras](https://keras.io/about/), and [PyTorch](https://pytorch.org/). GPU setup involves several technical jargon related to hardware compliant libraries, e.g., CUDA toolkit if using NVIDIA marketed GPU cards. I will not go into details of each step here and instead link to installation guide for further details. Knowing such details should be useful while working with deep learning tools and debugging runtime errors.
@@ -177,11 +176,15 @@ cd "${HPCMODULES}"/gpu
 touch 11.1.1
 ```
 
-*   I have put GPU configurations from both, admin installed CUDA drivers and GPU packages that I just have installed above. You may need to consult your HPC team to get an idea on configurations that you may able override with conda installed cuda toolkit. My gpu modulefile is at :octicons-file-code-16: an example [/confs/hpc/gpu_modulefile.tcl]({{ repo.url }}{{ repo.blob }}/confs/hpc/gpu_modulefile.tcl)
+*   I have placed GPU configurations from both, admin installed CUDA drivers and GPU packages that I just have installed above. You may need to consult your HPC team to get an idea on configurations that you may able override with conda installed cuda toolkit.
+
+!!! tip "Example modulefiles for GPU HPC"
+    My gpu modulefile are at :octicons-file-code-16: [/confs/hpc/modules/def]({{ repo.url }}{{ repo.tree }}/confs/hpc/modules/def)
+
 *   Once we have a modulefile ready, we can load custom gpu env using `module load gpu/11.1.1`.
 *   Notice change in PATH, LD_LIBRARY_PATH, and related env variables. For now, you will notice that `"${CONDA_PREFIX}"/bin` is pushed behind other cuda related paths we have configured using modulefile. Since I prefer to have `"${CONDA_PREFIX}"/bin` take precedence over rest of `$PATH` contents, I will reset PATH such that `"${CONDA_PREFIX}"/bin`, i.e., `../envs/rey/bin` in Winter HPC, will take precedence over other paths that we are loading via above modulefile. See [bash startup](#update-bash-startup) section for details.
 
-## Jupyter kernels
+### Jupyter kernels
 
 Let's install Python and R jupyter kernels for _rey_ with [configuration](../../cpu/sumner_2/#python-kernel) similar to that for _yoda_ env.
 
@@ -269,6 +272,9 @@ R_LIBS="/projects/verhaak-lab/amins/hpcenv/opt/R/pkgs/rey4.1:/projects/verhaak-l
 ```
 
 *   Now setup a custom loading of Renviron for _rey_ env. This will make sure that R environ will switch/revert every time conda env, _rey_ is loaded/unloaded via `mamba activate/deactivate` command.
+
+!!! tip "Example activate.d or deactivate.d scripts to manage conda envs"
+    You can view example scripts per respective conda env at :octicons-file-code-16: [/confs/hpc/mambaforge/envs]({{ repo.url }}{{ repo.tree }}/confs/hpc/mambaforge/envs).
 
 ```sh
 cd /projects/verhaak-lab/amins/hpcenv/mambaforge/envs/rey/etc/conda
@@ -456,9 +462,17 @@ Once we have _rey_ env ready, we can test GPU functionality of installed package
 
 ### Test Tensorflow and Keras
 
+I have followed beginner scripts from [tensorflow tutorials](https://www.tensorflow.org/tutorials) to test GPU functionality. Similarly, RStudio section on [Tensorflow for R](https://tensorflow.rstudio.com/tutorials/) provides beginners tutorials for testing machine learning using GPU.
 
 ### Test PyTorch
 
+See details on [PyTorch](https://pytorch.org/get-started/locally/#mac-verification) website.
+
+```py
+import torch
+x = torch.rand(5, 3)
+print(x)
+```
 
 ### Test TensorRT
 
@@ -492,19 +506,17 @@ cd ../.. && \
 
 Read docs at http://distributed.dask.org/en/stable/client.html
 
-### Image Classification
+## Image Classification
 
 Optional: Libraries specific to cell segmentation.
 
-*   I am creating a new env for installing tools related to cell segmentation analysis. These tools require additional set of packages (including installing using `pip`) and are updated often which together can make _rey_ env unstable over long run. Most of packages are based on package requirements for CellPose tool: [setup.py](https://github.com/MouseLand/cellpose/blob/master/setup.py) and [requirements.txt](https://github.com/MouseLand/cellpose/blob/master/requirements.txt) file.
+*   I am **creating a new conda env, _ben_** for installing tools related to cell segmentation analysis. These tools require additional set of packages (including installing using `pip`) and are updated often which together can make _rey_ env unstable over long run. Most of packages are based on package requirements for CellPose tool: [setup.py](https://github.com/MouseLand/cellpose/blob/master/setup.py) and [requirements.txt](https://github.com/MouseLand/cellpose/blob/master/requirements.txt) file.
 
 ```sh
 mamba create -c conda-forge -c pytorch -n ben python=3.9 tensorflow-gpu keras pytorch torchvision cudatoolkit=11.1.1 cudatoolkit-dev=11.1.1 scikit-learn numpy scipy natsort tifffile tqdm numba torch-optimizer
 ```
 
-*   Before activating _ben_ env, duplicate modulefile, `gpu/11.1.1` to `gpu/11.1.1_ben`. Replace conda env name from rey to ben in `gpu/11.1.1_ben`. This will allow to load a valid GPU env and avoid potential danger of putting _rey_ paths in PATH and LD_LIBRARY_PATH while we work in _ben_ env.
-
->ToDo: Update activate/deactivate scripts to load/unload respective gpu env while switching conda env.
+*   Before activating _ben_ env, duplicate modulefile, `gpu/11.1.1` that [we created earlier](#setup-gpu-env-as-modulefile) to `gpu/11.1.1_ben`. Replace conda env name from rey to ben in `gpu/11.1.1_ben`. This will allow to load a valid GPU env and avoid potential danger of putting _rey_ paths in PATH and LD_LIBRARY_PATH while we work in _ben_ env.
 
 *   Activate _ben_ env
 
@@ -595,7 +607,7 @@ PS: Cellprofiler has a limited GPU support for now but it may change in the futu
 ssh sumner 
 ```
 
-*   Create _grogu_ env
+*   Create _grogu_ conda env
 
 ```sh
 mamba create -c conda-forge -c bioconda -n grogu cellprofiler
@@ -611,13 +623,21 @@ cellprofiler --help
 
 ## Update bash startup
 
-Finally, I am tweaking [bash startup sequence](../../cpu/sumner_3/#bash-startup) that we setup earlier, such that it can allow loading GPU-specific bash env only when we login to Winter GPU HPC and not on Sumner CPU HPC. I have made following changes to bash startup. You can :octicons-file-code-16: [download my bash startup files here]({{ repo.url }}{{ repo.tree }}/confs/hpc/user_env/).
+Finally, I am tweaking [bash startup sequence](../../cpu/sumner_3/#bash-startup) that we had setup earlier, such that it can allow loading GPU-specific bash env only when we login to Winter GPU HPC and not on Sumner CPU HPC. I have made following changes to bash startup. You can :octicons-file-code-16: [download my bash startup files here]({{ repo.url }}{{ repo.tree }}/confs/hpc/user_env/).
 
 *   Update `SET PATH` block of *~/.bash_profile* to reset PATH for Winter GPU. See my notes under `elif [[ "$(hostname)" == *"winter"* ]]; then` section in :octicons-file-code-16: an example [.bash_profile]({{ repo.url }}{{ repo.blob }}/confs/hpc/user_env/.bash_profile) file.
 *   Update *~/.profile.d/void/VW01_set_winter_gpu.sh* to load Winter specific settings. See more into an example [VW01_set_winter_gpu.sh]({{ repo.url }}{{ repo.blob }}/confs/hpc/user_env/.profile.d/void/VW01_set_winter_gpu.sh) file.
 
-Logout and login again to Winter HPC. You will see a near identical bash prompt like Sumner HPC, e.g., `user@winter-log1`. However, when you check `echo $PATH` output and `echo $CONDA_DEFAULT_ENV`, you will notice that a default conda env in Winter HPC is now _rey_ while in Sumner HPC, it is _base_ (sometimes called _root_). Of course, you can revert to base or any other conda env in Winter HPC by doing `mamba deactivate` (because we changed from base to rey during bash startup) and then `mamba activate base` (or yoda, or any other env).
+Logout and login again to Winter HPC. You will see a near identical bash prompt like Sumner HPC, e.g., `user@winter-log1`. However, when you check `echo $PATH` output and `echo $CONDA_DEFAULT_ENV`, you will notice that a default conda env in Winter HPC is now _rey_ while in Sumner HPC, it is _base_ (sometimes called _root_).
+
+Of course, you can revert to base or any other conda env in Winter HPC by doing `mamba deactivate` (because we changed from base to rey during bash startup) and then `mamba activate base` (or yoda, or any other env).
+
+If you have also setup activate.d/deactivate.d scripts as [detailed earlier](#renviron-setup), you will be able to fine tune loading and unloading of conda env specific to HPC type (CPU or GPU) as well as type of R and GPU-specific configs. See :octicons-file-code-16: [/confs/hpc/mambaforge/envs]({{ repo.url }}{{ repo.tree }}/confs/hpc/mambaforge/envs) for example scripts.
 
 ## Done!
 
-Hope you have found this documentation helpful to get you started with HPC setup. I will post a few external resources on getting started guide to learn programming in Python, R, and more. Best wishes!
+Hope you have found this documentation helpful. I think this is more technical that I originally expected and you may have to look into stackoverflow or elsewhere to understand jargons I used across pages. Hopefully, I can go through some of sections again and put emphasis on rationale behind setting up my linux environment.
+
+That said, I hope this documentation, at least the CPU part, should get you started with HPC setup. For learning specific programming language and data analysis, I will post a few external resources on getting started guide to learn programming in Python, R, and more.
+
+Best wishes! :material-thumb-up: :material-rocket-launch-outline:
