@@ -161,6 +161,6 @@ nav:
       - Part 2: hpc/cpu/sumner_2.md
       - Part 3: hpc/cpu/sumner_3.md
     - GPU Computing:
-      - Part 1: hpc/gpu/winter_1.md
+      - GPU setup: hpc/gpu/winter_1.md
 
 #_end_

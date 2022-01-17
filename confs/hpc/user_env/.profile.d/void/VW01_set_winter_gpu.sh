@@ -23,7 +23,14 @@ if [[ "$(hostname)" == *"winter"* ]]; then
 
     ## Load additional CUDA drivers, toolkit, etc.
     ## if applicable.
-    # module load cuda11.1/toolkit/11.1.1
+    # if [[ "${CONDA_DEFAULT_ENV}" == "rey" ]]; then
+    # 	module load gpu/11.1.1
+    # fi
+
+    ## alternately, prefer using activate.d/deactivate.d
+    ## scripts to manage env specific configs. See
+    ## <code_repo>/confs/hpc/mambaforge directory
+    ## for example scripts.
 fi
 
 ## END ##
