@@ -1,0 +1,94 @@
+#%Module -*- tcl -*-
+##
+## dot modulefile
+
+## please edit this file after consulting with your HPC admins for valid
+## GPU configurations.
+
+proc ModulesHelp { } {
+  puts stderr "\tAdds user-defined NVIDIA CUDA 11.1 Toolkit to your environment variables,"
+}
+
+module-whatis "adds user-defined NVIDIA CUDA 11.1 Toolkit to your environment variables"
+
+################# load system cuda toolkit #################
+module load cuda11.1/toolkit/11.1.1
+is-loaded cuda11.1/toolkit/11.1.1
+
+################### set local variables ####################
+set               cudaversion         11.1.1
+set               root                /projects/verhaak-lab/amins/hpcenv/mambaforge/envs/rey
+set               shared_syscuda      /cm/shared/apps/cuda11.1
+set               local_syscuda      /cm/local/apps/cuda
+
+## additional GPU specific user configs
+set               user_hpcapps        /projects/verhaak-lab/amins/hpcenv/opt/modules/apps
+set               user_gpu_configs        $user_hpcapps/gpu/11.1.1
+
+############### keep admin installed GPU env ###############
+## set CUDA_HOME to conda installed cuda toolkit
+setenv            CUDA_INSTALL_PATH   $root
+setenv            CUDA_PATH           $root
+setenv            CUDA_ROOT           $root
+setenv            CUDA_HOME           $root
+
+## cuda libs come from admin installed libs
+setenv            CUDA_CMLOCAL_ROOT   $local_syscuda/libs/current
+setenv            CUDA_SDK            $shared_syscuda/sdk/$cudaversion
+
+## this is an empty location for now
+prepend-path      PATH                $shared_syscuda/sdk/$cudaversion/bin/x86_64/linux/release
+
+#### admin installed libs: hardware drivers ####
+## these are critical for interacting with an installed NVIDIA GPU cards.
+prepend-path      PATH                $local_syscuda/libs/current/bin
+prepend-path      LIBRARY_PATH        $local_syscuda/libs/current/lib64
+prepend-path      LD_RUN_PATH         $local_syscuda/libs/current/lib64
+prepend-path      LD_LIBRARY_PATH     $local_syscuda/libs/current/lib64
+prepend-path      MANPATH             $local_syscuda/libs/current/share/man
+
+## CUDA SDK for CUDPP CUTIL
+prepend-path      INCLUDEPATH         $shared_syscuda/sdk/$cudaversion/common/inc
+
+## OpenCL
+prepend-path      INCLUDEPATH         $shared_syscuda/toolkit/$cudaversion/targets/x86_64-linux/include/CL
+prepend-path      CPATH               $shared_syscuda/toolkit/$cudaversion/targets/x86_64-linux/include
+
+## OpenCL  SDK for CLUTIL
+prepend-path      CPATH               $shared_syscuda/sdk/$cudaversion/common/inc
+
+## Debugger
+prepend-path      INCLUDEPATH         $root/extras/Debugger/include
+
+## Disable CUDA cache
+setenv            CUDA_CACHE_DISABLE  1
+
+################### user installed apps ####################
+## keep user configs last, so as to take precedence in paths
+
+## TensorRT
+set               tenrthome           $user_hpcapps/tensorrt/8.2.2.1
+setenv            TENSORRT_HOME       $tenrthome
+prepend-path       LD_LIBRARY_PATH     $tenrthome/lib
+prepend-path       PATH                $tenrthome/bin
+
+#### user local configs ####
+## currently empty locations but I may fill in later
+## depending on manual (non-conda) installation of GPU libraries
+prepend-path      PATH                $user_gpu_configs/local/bin
+prepend-path      LIBRARY_PATH        $user_gpu_configs/local/lib
+prepend-path      LD_LIBRARY_PATH     $user_gpu_configs/local/lib
+prepend-path      INCLUDEPATH         $user_gpu_configs/local/include
+prepend-path      MANPATH             $user_gpu_configs/local/share/man
+
+#### prepending conda env related lib paths ####
+## this is ideally not favored by conda team but GPU tools may throw errors
+## if we are not setting up cuda related libpaths.
+## cuDNN and CUPTI will be sourced from conda installed libraries.
+prepend-path      LIBRARY_PATH        $root/lib
+prepend-path      LD_LIBRARY_PATH     $root/lib
+prepend-path      INCLUDEPATH         $root/include
+prepend-path      CUDA_INC_PATH       $root
+setenv            CUDA_INSTALL_DIR    $root
+
+## _end_ ##
