@@ -1,6 +1,7 @@
 #%Module -*- tcl -*-
 ##
 ## dot modulefile
+## Refer to manpage for syntax, https://modules.readthedocs.io/en/stable/modulefile.html
 
 ## please edit this file after consulting with your HPC admins for valid
 ## GPU configurations.
@@ -15,9 +16,12 @@ module-whatis "adds user-defined NVIDIA CUDA 11.1 Toolkit to your environment va
 module load cuda11.1/toolkit/11.1.1
 is-loaded cuda11.1/toolkit/11.1.1
 
+## warn if default gpu module is active
+conflict gpu/11.1.1
+
 ################### set local variables ####################
 set               cudaversion         11.1.1
-set               root                /projects/verhaak-lab/amins/hpcenv/mambaforge/envs/rey
+set               root                /projects/verhaak-lab/amins/hpcenv/mambaforge/envs/ben
 set               shared_syscuda      /cm/shared/apps/cuda11.1
 set               local_syscuda      /cm/local/apps/cuda
 
