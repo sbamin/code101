@@ -2,6 +2,7 @@
 title: "Setting up CPU env - Part 2"
 description: "Sumner HPC Setup 2021: Part 2"
 keywords: "sumner,hpc,conda,bash,jupyter,programming"
+comments: true
 ---
 
 Following up from [Part 1: Initial HPC setup](../sumner_1/), we now start installing essential softwares or (in conda dictionary) packages, e.g., R, Jupyter, etc.

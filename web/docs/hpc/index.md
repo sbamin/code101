@@ -37,7 +37,7 @@ To get started, I have partitioned documentation into two major sections. The **
 
 Source code of this website is available at {{ config.extra.repo.url }}. I welcome user contributions, including bugfixes, enhancements, and alternative approaches. Since I update my linux env once every two years or so, I will not be updating this website often. If I encounter major bugs in my working env, I will update this website accordingly.
 
-Please use [github issues]({{ config.extra.repo.url }}/issues) and [pull requests]({{ config.extra.repo.url }}/pulls) for all forms of communications and of course, you can tag/follow me :material-twitter: at [@sbamin](https://twitter.com/sbamin).
+This website is tightly linked to related :octicons-mark-github-16: github code repository at [sbamin/code101]({{ config.extra.repo.url }}), including page comments which are powered by [GitHub Discussions]({{ config.extra.repo.url }}/discussions). Please use [github issues]({{ config.extra.repo.url }}/issues) and [pull requests]({{ config.extra.repo.url }}/pulls) for a bug report and contributions, respectively. For more, you can tag/follow me :material-twitter: at [@sbamin](https://twitter.com/sbamin).
 
 ## Acknowledgments
 

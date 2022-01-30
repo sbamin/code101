@@ -2,6 +2,7 @@
 title: "Setting up CPU env - Part 3"
 description: "Sumner HPC Setup 2021: Part 3"
 keywords: "sumner,hpc,conda,bash,jupyter,programming"
+comments: true
 ---
 
 Continuing the setup from the [Part 2](../sumner_2/), now we will finalize setup for Sumner or CPU-optimized HPC with following key configurations:
