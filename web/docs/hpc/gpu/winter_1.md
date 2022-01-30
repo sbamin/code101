@@ -2,6 +2,7 @@
 title: "Setting up GPU env"
 description: "Winter HPC Setup 2021"
 keywords: "winter,hpc,gpu,tensorflow,keras,pytorch,machine_learning,conda,jupyter,segmentation"
+comments: true
 ---
 
 Winter HPC at JAX is a GPU-based computing cluster and it is powered by [NVIDIA(r) V100 series](https://www.nvidia.com/en-us/data-center/v100/) GPU cards. If you are working on GPU-based HPC or linux env, following page should guide you on setting up commonly used GPU libraries, e.g., [Tensorflow 2](https://www.tensorflow.org/), [Keras](https://keras.io/about/), and [PyTorch](https://pytorch.org/). GPU setup involves several technical jargon related to hardware compliant libraries, e.g., CUDA toolkit if using NVIDIA marketed GPU cards. I will not go into details of each step here and instead link to installation guide for further details. Knowing such details should be useful while working with deep learning tools and debugging runtime errors.
@@ -542,7 +543,7 @@ A generalized algorithm for cellular segmentation. https://github.com/MouseLand/
 *   Not recommended but given many dependencies for cellpose are not available or of conflicting nature using `mamba install`, I am falling back to `pip install`.
 
 ```sh
-pip install cellpose[all] |& tee -a cellpose_install.log
+pip install cellpose[all] |& tee -a ~/logs/cellpose_install.log
 ```
 
 >In case of errors or unstable env, I can always purge _ben_ env without any impact on _rey_ conda env.

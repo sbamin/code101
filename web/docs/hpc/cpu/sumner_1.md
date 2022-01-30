@@ -2,6 +2,7 @@
 title: "Setting up CPU env - Part 1"
 description: "Sumner HPC Setup 2021"
 keywords: "sumner,hpc,conda,bash,jupyter,programming"
+comments: true
 ---
 
 ## Set up for HPC Sumner
