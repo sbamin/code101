@@ -36,6 +36,7 @@ theme:
     - navigation.top
     - navigation.indexes
     - navigation.sections
+    - content.code.annotate
   palette: #
     - scheme: default
       primary: blue
@@ -105,6 +106,11 @@ extra:
   version:
     provider: mike
     default: latest
+  comments:
+    enabled: true
+    # defaults to utterances unless replaced mode: giscus
+    mode: utterances
+    type: issues
 
 # Extensions
 markdown_extensions:

@@ -68,37 +68,53 @@
   {% if page and page.meta and page.meta.author %}
     <p><small>Author: {{ page.meta.author }}</small></p>
   {% else %}
-    <p><small>Author: <a href="https://sbamin.com/about" rel="me">{{ config.site_author }}</a> <span class="twemoji">
-  {% include ".icons/fontawesome/brands/twitter.svg" %}
-</span><a href="https://twitter.com/{{config.extra.twitter}}">@{{config.extra.twitter}}</a></small></p>
+    <p><small>Author: <a href="https://sbamin.com/about" rel="me">{{ config.site_author }}</a> <span class="twemoji">{% include ".icons/fontawesome/brands/twitter.svg" %}</span><a href="https://twitter.com/{{config.extra.twitter}}">@{{config.extra.twitter}}</a></small></p>
   {% endif %}
 
-  {% if page and page.meta and page.meta.comments %}
-	<!-- Giscus -->
+  {% if config.extra.comments.enabled and page and page.meta and page.meta.comments == false %}
+  	<!-- disbale comments -->
+  {% else %}
 	<h2 id="__comments">{{ lang.t("meta.comments") }}</h2>
-	<!-- Replace with generated snippet -->
-	<script src="https://giscus.app/client.js"
-	        data-repo="sbamin/code101"
-	        data-repo-id="R_kgDOGmaCJg"
-	        data-category="Announcements"
-	        data-category-id="DIC_kwDOGmaCJs4CAeTc"
-	        data-mapping="pathname"
-	        data-reactions-enabled="1"
-	        data-emit-metadata="0"
-	        data-input-position="top"
-	        data-theme="light"
-	        data-lang="en"
-	        crossorigin="anonymous"
-	        async>
-	</script>
+	<p>Comments are powered by <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path></svg></span> <a href="{{ config.repo_url }}{{ config.extra.comments.type }}">GitHub {{ config.extra.comments.type }}</a> and requires a login with a github id.</p>
+
+	{% if config.extra.comments.mode == "giscus" %}
+		<script src="https://giscus.app/client.js"
+		        data-repo="sbamin/code101"
+		        data-repo-id="R_kgDOGmaCJg"
+		        data-category="Announcements"
+		        data-category-id="DIC_kwDOGmaCJs4CAeTc"
+		        data-mapping="pathname"
+		        data-reactions-enabled="1"
+		        data-emit-metadata="0"
+		        data-input-position="top"
+		        data-theme="light"
+		        data-lang="en"
+		        crossorigin="anonymous"
+		        async>
+		</script>
+	{% else %}
+		<script src="https://utteranc.es/client.js"
+		        repo="sbamin/code101"
+		        issue-term="title"
+		        label="site issues :speech_balloon:"
+		        theme="github-light"
+		        crossorigin="anonymous"
+		        async>
+		</script>
+	{% endif %}
 
 	<!-- Reload on palette change -->
 	<script>
 	var palette = __md_get("__palette")
 	if (palette && typeof palette.color === "object")
 	  if (palette.color.scheme === "slate") {
-	    var giscus = document.querySelector("script[src*=giscus]")
-	    giscus.setAttribute("data-theme", "dark") 
+	  	{% if config.extra.comments.mode == "giscus" %}
+	    	var giscus = document.querySelector("script[src*=giscus]")
+	    	giscus.setAttribute("data-theme", "dark")
+	    {% else %}
+	    	var utterances = document.querySelector("script[src*=utteranc]")
+	    	utterances.setAttribute("theme", "github-dark")
+	    {% endif %}
 	  }
 
 	/* Register event handlers after documented loaded */
@@ -107,20 +123,36 @@
 	  ref.addEventListener("change", function() {
 	    var palette = __md_get("__palette")
 	    if (palette && typeof palette.color === "object") {
-	      var theme = palette.color.scheme === "slate" ? "dark" : "light"
-
-	      /* Instruct Giscus to change theme */
-	      var frame = document.querySelector(".giscus-frame")
-	      frame.contentWindow.postMessage(
-	        { giscus: { setConfig: { theme } } },
-	        "https://giscus.app"
-	      )
+	    	// reload theme for either giscus or utterances
+	    	{% if config.extra.comments.mode == "giscus" %}
+	    		/* Instruct Giscus to change theme */
+	      		var theme = palette.color.scheme === "slate" ? "dark" : "light"
+				var frame = document.querySelector(".giscus-frame")
+				frame.contentWindow.postMessage(
+					{ giscus: { setConfig: { theme } } },
+					"https://giscus.app"
+				)
+			{% else %}
+				/* Instruct Utterances to change theme */
+				// https://github.com/utterance/utterances/issues/549#issuecomment-907606127
+				var frame = document.querySelector(".utterances-frame")
+				var theme = palette.color.scheme === "slate" ? "github-dark" : "github-light"
+				const message = {
+					type: 'set-theme',
+					theme: theme
+				};
+      	  		const iframe = document.querySelector('.utterances-frame');
+      	  		iframe.contentWindow.postMessage(message, 'https://utteranc.es');
+			{% endif %}
 	    }
 	  })
 	})
 	</script>
   {% endif %}
 
-<!--   <script src="{{config.site_url}}{{ 'assets/javascripts/bundle.93302429.min.js' | url }}"></script>
-  <script src="{{config.site_url}}{{ 'assets/javascripts/bundle.71c96ae2.min.js' | url }}"></script> -->
+  {# defunct scripts
+  <script src="{{config.site_url}}{{ 'assets/javascripts/bundle.93302429.min.js' | url }}"></script>
+  <script src="{{config.site_url}}{{ 'assets/javascripts/bundle.71c96ae2.min.js' | url }}"></script>
+  #}
 {% endblock %}
+ 
