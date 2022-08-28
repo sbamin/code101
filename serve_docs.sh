@@ -18,6 +18,9 @@ conda activate ruby
 set -euo pipefail
 
 cd "${DOCDIR}"/web && echo -e "\nWorkdir is $(pwd)\n"
-mkdocs serve
 
+## en0 is wifi address - double check that
+# hostip="$(ipconfig getifaddr en0)"
+# mkdocs serve --livereload -a "${hostip}":8000
+mkdocs serve
 ## END ##

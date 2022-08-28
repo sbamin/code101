@@ -1,8 +1,14 @@
 ---
 title: "Setting up CPU env - Part 1"
-description: "Sumner HPC Setup 2021"
-keywords: "sumner,hpc,conda,bash,jupyter,programming"
+description: "Getting started with HPC Setup. Part 1: Setup conda from scratch or replace an older environment."
+keywords: "hpc,setup,conda,bash,programming,jax,sumner"
 comments: true
+tags:
+    - hpc
+    - setup
+    - conda
+    - bash
+    - programming
 ---
 
 ## Set up for HPC Sumner

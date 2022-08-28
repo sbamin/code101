@@ -1,8 +1,16 @@
 ---
 title: "Setting up CPU env - Part 3"
-description: "Sumner HPC Setup 2021: Part 3"
-keywords: "sumner,hpc,conda,bash,jupyter,programming"
+description: "Getting started with HPC Setup. Part 3: Configure conda environments for julia, python2, perl, and postgresql. Add Modules and containers, finally setup bash startup sequence."
+keywords: "hpc,setup,conda,jupyter,julia,database,programming,jax,sumner"
 comments: true
+tags:
+    - hpc
+    - setup
+    - conda
+    - startup
+    - database
+    - jupyter
+    - programming
 ---
 
 Continuing the setup from the [Part 2](../sumner_2/), now we will finalize setup for Sumner or CPU-optimized HPC with following key configurations:
@@ -849,7 +857,7 @@ Over years of fiddling with bash startup, my startup setup has become overly com
     [![](https://mermaid.ink/img/eyJjb2RlIjoiICAgIGdyYXBoIFRCXG4gICAgICBBW1N5c3RlbSA8YnI-L2V0Yy9wcm9maWxlXSAtLT4gQltVc2VyPGJyPi5iYXNoX3Byb2ZpbGVdXG4gICAgICBCIC0tPiBDe1VzZXIgLnByb2ZpbGUuZC8gZGlyZWN0b3J5fTtcbiAgICAgIEMgLS0-fFllc3wgRFtzb3VyY2UgLnByb2ZpbGUuZC9BMDEuc2hdO1xuICAgICAgRCAtLi0-IEVbc291cmNlIC5wcm9maWxlLmQvQTAyLnNoXTtcbiAgICAgIEUgLS4tPiBGW3NvdXJjZSAucHJvZmlsZS5kL1o5OS5zaF07XG4gICAgICBGIC0tPiBHO1xuICAgICAgQyAtLT4gfE5vfCBHe1VzZXIgLmJhc2hyY307XG4gICAgICBHIC0tPiB8SW50ZXJhY3RpdmUgc2hlbGw8YnI-UFMxIHZhciBpcyBzZXR8IEhbc291cmNlIC9ldGMvYmFzaHJjXVxuICAgICAgSCAtLT4gSVtVc2VyIC5iYXNoX2FsaWFzZXNdXG4gICAgICBJIC0tPiBKW2Jhc2ggdGVybWluYWwgY29uZmlnLCA8YnI-IGUuZy4sIGNvbG9ycywgaGlzdG9yeSwgZXRjLl1cbiAgICAgIEogLS0-IEtbSW5pdGlhbGl6ZTxicj5Db25kYSBFbnZpcm9ubWVudF1cbiAgICAgIEcgLS0-IHxOb24taW50ZXJhY3RpdmUgc2hlbGw8YnI-UFMxIHZhciBpcyB1bnNldHwgS1xuICAgICAgTFtVc2VyIC5wcm9maWxlLmQvdm9pZF0gLS0-IE1bc291cmNlIDxicj4gLnByb2ZpbGUuZC92b2lkL1ZBMDEuc2hdO1xuICAgICAgTSAtLi0-IE5bc291cmNlIDxicj4gLnByb2ZpbGUuZC92b2lkL1ZaOTkuc2hdO1xuICAgICAgSyAtLT4gTDtcbiAgICAgIE4gLS0-IE9bU2V0IFBBVEhdXG4gICAgICBPIC0tPiBQW1NldCBQUzFdIiwibWVybWFpZCI6eyJ0aGVtZSI6ImRlZmF1bHQifSwidXBkYXRlRWRpdG9yIjpmYWxzZSwiYXV0b1N5bmMiOnRydWUsInVwZGF0ZURpYWdyYW0iOmZhbHNlfQ)](https://mermaid-js.github.io/mermaid-live-editor/edit#eyJjb2RlIjoiICAgIGdyYXBoIFRCXG4gICAgICBBW1N5c3RlbSA8YnI-L2V0Yy9wcm9maWxlXSAtLT4gQltVc2VyPGJyPi5iYXNoX3Byb2ZpbGVdXG4gICAgICBCIC0tPiBDe1VzZXIgLnByb2ZpbGUuZC8gZGlyZWN0b3J5fTtcbiAgICAgIEMgLS0-fFllc3wgRFtzb3VyY2UgLnByb2ZpbGUuZC9BMDEuc2hdO1xuICAgICAgRCAtLi0-IEVbc291cmNlIC5wcm9maWxlLmQvQTAyLnNoXTtcbiAgICAgIEUgLS4tPiBGW3NvdXJjZSAucHJvZmlsZS5kL1o5OS5zaF07XG4gICAgICBGIC0tPiBHO1xuICAgICAgQyAtLT4gfE5vfCBHe1VzZXIgLmJhc2hyY307XG4gICAgICBHIC0tPiB8SW50ZXJhY3RpdmUgc2hlbGw8YnI-UFMxIHZhciBpcyBzZXR8IEhbc291cmNlIC9ldGMvYmFzaHJjXVxuICAgICAgSCAtLT4gSVtVc2VyIC5iYXNoX2FsaWFzZXNdXG4gICAgICBJIC0tPiBKW2Jhc2ggdGVybWluYWwgY29uZmlnLCA8YnI-IGUuZy4sIGNvbG9ycywgaGlzdG9yeSwgZXRjLl1cbiAgICAgIEogLS0-IEtbSW5pdGlhbGl6ZTxicj5Db25kYSBFbnZpcm9ubWVudF1cbiAgICAgIEcgLS0-IHxOb24taW50ZXJhY3RpdmUgc2hlbGw8YnI-UFMxIHZhciBpcyB1bnNldHwgS1xuICAgICAgTFtVc2VyIC5wcm9maWxlLmQvdm9pZF0gLS0-IE1bc291cmNlIDxicj4gLnByb2ZpbGUuZC92b2lkL1ZBMDEuc2hdO1xuICAgICAgTSAtLi0-IE5bc291cmNlIDxicj4gLnByb2ZpbGUuZC92b2lkL1ZaOTkuc2hdO1xuICAgICAgSyAtLT4gTDtcbiAgICAgIE4gLS0-IE9bU2V0IFBBVEhdXG4gICAgICBPIC0tPiBQW1NldCBQUzFdIiwibWVybWFpZCI6IntcbiAgXCJ0aGVtZVwiOiBcImRlZmF1bHRcIlxufSIsInVwZGF0ZUVkaXRvciI6ZmFsc2UsImF1dG9TeW5jIjp0cnVlLCJ1cGRhdGVEaWFncmFtIjpmYWxzZX0)
 
 !!! info "Example bash startup files"
-    Fix link - You can :octicons-file-code-16: [download my bash startup files]({{ repo.url }}{{ repo.tree }}/confs/hpc/user_env/). It will not work by cloning into your linux env. However, each file has inline comments that should help customizing your bash startup.
+    Fix link - You can :octicons-file-code-16: [download my bash startup files]({{ repo.url }}{{ repo.blob }}/confs/hpc/user_env/). It will not work by cloning into your linux env. However, each file has inline comments that should help customizing your bash startup.
 
 And that's all! :checkered_flag:
 

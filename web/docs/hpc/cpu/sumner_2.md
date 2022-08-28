@@ -1,8 +1,15 @@
 ---
 title: "Setting up CPU env - Part 2"
-description: "Sumner HPC Setup 2021: Part 2"
-keywords: "sumner,hpc,conda,bash,jupyter,programming"
+description: "Getting started with HPC Setup. Part 2: Configure conda enviornment, setup R and python, configure Jupyter kernels and start Jupyter Lab."
+keywords: "hpc,setup,conda,jupyter,kernels,lab,programming,jax,sumner"
 comments: true
+tags:
+    - hpc
+    - setup
+    - conda
+    - kernels
+    - jupyter
+    - programming
 ---
 
 Following up from [Part 1: Initial HPC setup](../sumner_1/), we now start installing essential softwares or (in conda dictionary) packages, e.g., R, Jupyter, etc.
@@ -476,9 +483,20 @@ q(save = "no")
 
 ### bash kernel
 
-Stay in _yoda_ env.
+We will now install [bash kernel](https://github.com/takluyver/bash_kernel) in _yoda_ env. Unlike other (R and python) kernels, bash kernel do not need to be installed in all of conda env because we can always switch between conda env specific bash env using `mamba activate anakin` or `mamba activate rey`, etc.
+
+Here, I will install bash kernel in _yoda_ and not _base_ env as I intend to use _yoda_ as my primary go-to env when I login to HPC.
+
+
+!!! tip "Keep use of _base_ env to bare minimum"
+    Please remember that we keep use of _base_ to bare minimum for maintaining core of codna packages, and should avoid installing (and populating dependencies) packages in _base_ env. You can always delete secondary conda env and restart but you cannot do so with _base_ env!
 
 ```sh
+## in yoda env
+mamba list | grep -E "bash_kernel"
+## if this does not show bash_kernel installed, redo install
+# mamba install -c conda-forge ipykernel r-irkernel bash_kernel
+## and the install kernel into jupyter env
 python -m bash_kernel.install
 ```
 
@@ -662,7 +680,7 @@ Once we have installed env specific kernels as in _yoda_ (and other envs, if a n
 conda deactivate
 ```
 
-!!! warning "You should be in conda _base_ env"
+!!! warning "You should now be in conda _base_ env"
     If you were jumping across more than one conda envs, then each instance of `conda deactivate` command will bring you back to previously active env. So, make sure to return to _base_ env which you can confirm using `echo $CONDA_PREFIX` output. That should point to base path of conda (mambaforge in my case) installation: _/projects/verhaak-lab/amins/hpcenv/mambaforge/_. Also, notice change in bash prompt to `(base) userid@sumner50`.
 
 *   Once in the _base_ env, generate skeleton for default jupyter configuration.
@@ -678,7 +696,60 @@ jupyter server --generate-config
 !!! danger "Secure Jupyter Server"
     It is critical that you harden security of jupyterlab server. Default configuration is not good enough (in my view) for launching notebook server over HPC, especially without SSL (or _https_) support. Setting up individual security steps is beyond scope of this documentation. However, I strongly recommend reading official documentation on [running a public Jupyter Server](https://jupyter-server.readthedocs.io/en/latest/operators/public-server.html) and [security in the jupyter server](https://jupyter-server.readthedocs.io/en/latest/operators/security.html).
 
+    Checkout [this example guide](https://medium.com/@nyghtowl/setup-jupyter-notebook-access-on-google-compute-engine-with-https-ad69297f438b) on creating self-signed SSL certificates in case you do not have SSL certificates from Research IT department.
+
+#### self-signed SSL certificates
+
+Ideally you should have SSL certificates signed by a verified certificate authority (CA) else most of modern web browsers will issue a warning or an error regarding SSL secutity. CA-signed SSLs are typically paid unless issued via [let's encrypt](https://letsencrypt.org/) or your DNS providers.
+
+Securing a website (Jupyter Env in our case) is beyond scope of this guide but I will suggest to inquire to your research IT department to see if they can help secure your Jupyter env. It's better to have CA-signed SSL over self-signed SSL, and always better to have SSL (https) over insecure (http) connection to your Jupyter env. This is true even when you are working within a secure firewall of your work network.
+
+Here, I am creating a self-signed SSL which most of you can generate and at least have self-signed SSL. [See this post for details](https://medium.com/@nyghtowl/setup-jupyter-notebook-access-on-google-compute-engine-with-https-ad69297f438b).
+
+```sh
+## switch to base conda env
+mamba activate base
+
+## create dir to save SSL certificates
+mkdir ~/ssl_cert && \
+chmod 700 ~/ssl_cert && \
+cd ~/ssl_cert
+
+## generate a private key
+openssl genrsa -out hpc_cert.key 2048
+
+## secure your private key
+chmod 600 hpc_cert.key
+
+## create a signed certificate using a key we generated above
+openssl req -new -key hpc_cert.key -out hpc_cert.csr
+
+## finally self-sign this certicate
+openssl x509 -req -days 365 -in hpc_cert.csr -signkey hpc_cert.key -out hpc_cert.pem
+```
+
+>While creating a signed certificate, *hpc_cert.csr*, you will be prompted to enter issuer's country, city, etc., including Common Name (CN). You should put some info related to use of this certificate into respective fields, e.g., Common Name can be `hpcjupyter`.
+
+!!! warning "SSL certificate - unable to verify SSL connection"
+    Regardless of what you put in CN, say `hpcjupyter.mywebsite.com`, most of modern web browsers so either SSL warning or error of not verifying your self-signed SSL. This is because you have self-signed this SSL and not using an approved certificate authority (CA) provider for signing your SSL. [Read this post for details](https://support.dnsimple.com/articles/what-is-common-name/). In essense, your self-signed SSL is acting as it is an authentic SSL for a CN you provided above, `hpcjupyter.mywebsite.com`. Since that's a clearly a security risk, most modern browsers will throw a warning before you are allowed to visit a site (Jupyter server in this case) or even may not allow at all to load that website! Hence, prefer asking your Research IT to make a signed SSL available for a specific intranet subdomain, e.g., `jupyter.company.com` for users to use.
+
+#### cookie file
+
+*   After creating SSL certificates, also create a cookie file for jupyter server.
+
+```sh
+openssl rand -hex 32 > /home/foo/ssl_cert/jp_cookie
+chmod 600 /home/foo/ssl_cert/jp_cookie
+```
+
+#### config file
+
 *   Example config for _/home/userid/.jupyter/jupyter_server_config.py_. **Please do not copy and paste these options** without knowing [underlying details](https://jupyter-notebook.readthedocs.io/en/stable/config.html).
+
+!!! warning "Jupyter token - provide a strong token string"
+    While editing jupyter config file below, please read inline comments carefully, especially for `c.ServerApp.token`. **Do not use the default token as that token is used for login to your running jupyter server**. Provide a secure (a longer string, 32 characters or more) string generated using `uuidgen` and after removing dashes.
+
+    Do not worry of remembering this token. Jupyter does allow you to have an alternate way of login using a custom, user-generated password (see further below).
 
 ```py
 ## leave commented out portion of default config as it is.
@@ -688,17 +759,18 @@ jupyter server --generate-config
 #### NOTEBOOK CONFIGS ####
 ## SSL settings
 ## read documentation for details
-c.ServerApp.certfile = u'/home/foo/xyz/jp.crt'
-c.ServerApp.keyfile = u'/home/foo/xyz/jp.pem'
+c.ServerApp.certfile = u'/home/foo/ssl_cert/hpc_cert.csr'
+c.ServerApp.keyfile = u'/home/foo/ssl_cert/hpc_cert.key'
 
-## openssl rand -hex 32 > /home/foo/xyz/dummy_file
-c.JupyterHub.cookie_secret_file = '/home/foo/xyz/dummy_file'
+c.JupyterHub.cookie_secret_file = '/home/foo/ssl_cert/jp_cookie'
 c.ServerApp.open_browser = False
 
 ## token used to programmatically login to jupyter,
-## e.g., via Atom Hydrogen package
-## alphanumeric secret string - longer the better.
-c.ServerApp.token = 'dummy_login_token_replace_with_a_secret_token'
+## e.g., via VS Code Jupyter extension.
+## This is essentially a password to login to jupyter
+## Provide an alphanumeric secret string - longer the better.
+## you can create one using uuidgen command: Remove dashes.
+c.ServerApp.token = 'PLEASE_REPLACE_THIS_TOKEN_c8syb2lnd89g2fosyyfskdfy02h'
 c.ServerApp.allow_password_change = False
 
 ## should be set to False
@@ -713,25 +785,24 @@ c.ServerApp.terminado_settings={'shell_command':['bash', '-l']}
 ## END ##
 ```
 
-*   Once you customize _/home/userid/.jupyter/jupyter_notebook_config.py_ file, **make sure to generate a secret and strong password using** `jupyter server password` command. Your password then will be written in encrypted format in _/home/userid/.jupyter/jupyter_server_config.json_ file.
+#### jupyter password
+
+*   Once you customize config file above, **make sure to generate a secret and strong password using** `jupyter server password` command. Your password then will be written in an encrypted format in _/home/userid/.jupyter/jupyter_server_config.json_ file.
+
 *   Make both files read/write-only by you.
 
 ```sh
 ## for directory, we use permission 700
 chmod 700 ~/.jupyter
-## location where cookie secret is stored
-## prefer a secure and stable path
-mkdir -p ~/xyz 
-chmod 700 ~/xyz
 
 # For files, we use permission 600
 chmod 600 ~/.jupyter/jupyter_server_config.py
 chmod 600 ~/.jupyter/jupyter_server_config.json
-## location of cookie secret file
-chmod 600 ~/xyz/dummy_file
 ```
 
 ### Customizing user interface
+
+If you need to add custom themes, fonts, shortcuts, etc. for Jupyter, you may follow this section, else safe to skip to [Start Jupyter](#start-jupyterlab) section.
 
 Before installing themes or customizing jupyterlab further, I will install [node js](https://nodejs.org/en/) package to _base_ env.
 
@@ -746,7 +817,7 @@ npm --version
 
 ####  Themes
 
-Optional: Themes provide custom user interface and is optional for setup. See example themes at https://github.com/dunovank/jupyter-themes
+Themes provide custom user interface and is optional for setup. See example themes at https://github.com/dunovank/jupyter-themes
 
 ```sh
 mamba install -c conda-forge jupyterthemes
@@ -801,7 +872,7 @@ If you are familiar with RStudio shortcuts for R pipe `%>%` and assignment `<-` 
 
 #### gpg signatures
 
-Optional: Import gpg keys, if any for [code signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits). More at https://unix.stackexchange.com/a/392355/28675
+Import gpg keys, if any for [code signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits). More at https://unix.stackexchange.com/a/392355/28675
 
 Earlier I installed required gpg packages, _gpg_ and _python-gnupg_ but they ended up conflicting with `gpg-agent` that is running by the system gpg at `/usr/bin/gpg`. So, I have to remove both conda packages in order to use system gpg at `/usr/bin/`.
 
@@ -848,7 +919,7 @@ gpg --list-secret-keys
 
 #### rmate
 
-Optional: I user `rmate` command to open remote files on HPC in the text editor like Atom or SublimeText on my macbook.
+I user `rmate` command to open remote files on HPC in the text editor like Atom or SublimeText on my macbook.
 
 *   Prefer installing [standalone binary](https://github.com/textmate/rmate) over ruby-based (`gem install rmate`) command. If you prefer ruby based installation, better to add ruby installation in a separate conda env, e.g., in _luke_ or other backend env.
 
@@ -907,8 +978,7 @@ echo $?
 # jupyter server extension enable --py jupyter_http_over_ws
 ```
 
-*   Test jupyterlab run: Please [read documentation](https://jupyter-notebook.readthedocs.io/en/stable/public_server.html) carefully on using SSL option and defining port and IP.
-
+*   Test jupyterlab run.
 
 !!! warning "☠️ Use SSL and password protection ☠️"
     Avoid running notebook server without SSL and proper password and token configuration as [detailed above](#configure-jupyterlab)) else you may encounter a significant data security risk.
@@ -921,10 +991,12 @@ mkdir -p ~/tmp/jupyter/sumner
 REMOTEIP="$(hostname -I | head -n1 | xargs)"
 
 ## test run from a login or compute node
-jupyter lab --no-browser --certfile="${MYPEM}" --keyfile "${MYKEY}" --ip="${REMOTEIP}" --port="$MYPORT" >> ~/tmp/jupyter/sumner/runtime.log 2>&1
+## SSL related settings will be inherited from jupyter config file that 
+## we already have created as above.
+jupyter lab --no-browser --ip="${REMOTEIP}" |& tee -a ~/tmp/jupyter/sumner/runtime.log
 ```
 
-*   Once a jupyter session begins and assuming you are on a secure local area network, you can open URL: `https://<REMOTEIP>:<PORT>/lab` to launch jupyter lab.
+*   Once a jupyter session begins and assuming you are on a secure local area network, you can open URL: `https://<REMOTEIP>:<PORT>/lab` to launch jupyter lab. Here, `<PORT>` is randomly assigned when you start a server and URL will be displayed on the terminal or in a log file at *~/tmp/jupyter/sumner/runtime.log*.
 
 !!! warning "Run jupyterlab from a compute and not login node"
     **Avoid running JupyterLab server on a login node.** It will most likely be killed by HPC admins. For longer running and compute-intensive jupyterlab sessions, it is preferable to run jupyterlab from a compute and not a login node. This requires series of secure port forwarding which is beyond the scope of current documentation. However, your HPC may already have support for running JupyterLab on a compute node, e.g, similar to this one at [Univ. of Bern](https://hpc-unibe-ch.github.io/software/JupyterLab.html) or [Princeton Univ.](https://researchcomputing.princeton.edu/support/knowledge-base/jupyter). Talk to your HPC staff for policies on running JupyterLab server.
@@ -938,4 +1010,4 @@ exit # from sumner
 ssh sumner
 ```
 
-[In Part 3](../sumner_3/), I will finalize setting up Sumner (or CPU-based) HPC and also install a dedicated conda env for Winter (GPU-based) HPC.
+[In Part 3](../sumner_3/), I will finalize setting up Sumner (or CPU-based) HPC and also install a dedicated conda env for Winter (GPU-based) HPC. If you like to stop here, you may except I prefer that you follow [bash startup]({{ config.site_url }}/hpc/cpu/sumner_3/#bash-startup) section in Part 3, so that conda and program-specific (R and python) environment variables are consistently loaded across HPC bash user env.
