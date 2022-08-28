@@ -3,7 +3,7 @@ site_name: Programming 101
 site_url: https://code.sbamin.com
 site_author: "Samir B. Amin"
 site_description: >-
-  Notes on programming, mostly using R, bash, and python.
+  Notes on programming for computational biology: Using R, bash, and python on HPC.
 
 # Repository
 repo_name: sbamin/code101
@@ -37,6 +37,9 @@ theme:
     - navigation.indexes
     - navigation.sections
     - content.code.annotate
+    - search.suggest
+    - search.highlight
+    - search.share
   palette: #
     - scheme: default
       primary: blue
@@ -64,10 +67,12 @@ plugins:
   - macros
   - git-revision-date-localized:
       type: iso_date
-      timezone: US
+      timezone: 'America/New_York'
       fallback_to_build_date: true
   - minify:
       minify_html: true
+  - tags:
+      tags_file: tags.md
 
 ## Customization
 extra_css:
@@ -102,7 +107,7 @@ extra:
   analytics:
     provider: google
     property: UA-307297-1
-  site_keywords: "linux,getting started,computing,hpc, conda,bash,jupyter,programming,biology,bioinformatics"
+  site_keywords: "linux,getting started,computing,hpc, conda,bash,jupyter,programming,biology,bioinformatics,gpu"
   version:
     provider: mike
     default: latest
@@ -168,5 +173,6 @@ nav:
       - Part 3: hpc/cpu/sumner_3.md
     - GPU Computing:
       - GPU setup: hpc/gpu/winter_1.md
+  - Tags: tags.md
 
 #_end_

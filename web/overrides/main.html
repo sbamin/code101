@@ -2,8 +2,8 @@
 
 {% block extrahead %}
 <!--   <link rel="stylesheet" href="{{config.site_url}}{{ 'assets/stylesheets/main.c296cc61.min.css' | url }}"> -->
-	{% if page and page.meta and page.meta.keywords %}
-		{% set keywords = page.meta.keywords %}
+	{% if page and page.meta and page.meta.tags %}
+		{% set keywords = page.meta.tags %}
 		<meta name="keywords" content="{{ page.meta.keywords }}">
 	{% elif config.extra.site_keywords %}
 		{% set keywords = config.extra.site_keywords %}
