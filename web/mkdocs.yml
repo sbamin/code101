@@ -173,6 +173,7 @@ nav:
       - Part 3: hpc/cpu/sumner_3.md
     - GPU Computing:
       - GPU setup: hpc/gpu/winter_1.md
+      - Image analysis on GPU-based HPC: hpc/gpu/image_analysis_cellprofiler_cellpose.md
   - Tags: tags.md
 
 #_end_
