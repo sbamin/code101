@@ -2,52 +2,72 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://code.sbamin.com/</loc>
-         <lastmod>2022-09-05</lastmod>
+         <lastmod>2023-11-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://code.sbamin.com/disclosure/</loc>
-         <lastmod>2022-09-05</lastmod>
+         <lastmod>2023-11-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://code.sbamin.com/tags/</loc>
-         <lastmod>2022-09-05</lastmod>
+         <lastmod>2023-11-28</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://code.sbamin.com/blog/</loc>
+         <lastmod>2023-11-28</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://code.sbamin.com/blog/2023/run-ondemand-app-with-a-custom-conda-env/</loc>
+         <lastmod>2023-11-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://code.sbamin.com/hpc/</loc>
-         <lastmod>2022-09-05</lastmod>
+         <lastmod>2023-11-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://code.sbamin.com/hpc/cpu/sumner_1/</loc>
-         <lastmod>2022-09-05</lastmod>
+         <lastmod>2023-11-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://code.sbamin.com/hpc/cpu/sumner_2/</loc>
-         <lastmod>2022-09-05</lastmod>
+         <lastmod>2023-11-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://code.sbamin.com/hpc/cpu/sumner_3/</loc>
-         <lastmod>2022-09-05</lastmod>
+         <lastmod>2023-11-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://code.sbamin.com/hpc/gpu/image_analysis_cellprofiler_cellpose/</loc>
-         <lastmod>2022-09-05</lastmod>
+         <lastmod>2023-11-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://code.sbamin.com/hpc/gpu/winter_1/</loc>
-         <lastmod>2022-09-05</lastmod>
+         <lastmod>2023-11-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://code.sbamin.com/tags/</loc>
-         <lastmod>2022-09-05</lastmod>
+         <lastmod>2023-11-28</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://code.sbamin.com/blog/archive/2023/</loc>
+         <lastmod>2023-11-28</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://code.sbamin.com/blog/category/howto/</loc>
+         <lastmod>2023-11-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
