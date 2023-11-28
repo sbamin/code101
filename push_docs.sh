@@ -8,7 +8,7 @@ REPO="code101"
 WEBURL="https://code.sbamin.com"
 WEB_BRANCH="www"
 
-DOCDIR="$HOME"/dbsa/acad/scripts/github/webpages/live/"${REPO}"
+DOCDIR="$HOME"/sync/dbsa/acad/scripts/github/webpages/live/"${REPO}"
 WEBDIR="/tmp/${REPO}"
 mkdir -p "${WEBDIR}"
 
