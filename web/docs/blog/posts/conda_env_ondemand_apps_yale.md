@@ -11,7 +11,11 @@ authors:
   - sba
 ---
 
-Setup to run OnDemand apps on mccleary. As always, this is an overview and not an error-proof guide. Always, refer to [McCleary Docs from Yale HPC Team](https://docs.ycrc.yale.edu/clusters/mccleary/) and [Contact HPC support](https://docs.ycrc.yale.edu/) for questions. Any questions or issues for lab related config should be discussed in slack :fontawesome-brands-slack: `hpc` channel or by [creating an issue in teamverhaak/hpc github repo](https://github.com/teamverhaak/hpc/issues). Ask in :fontawesome-brands-slack: `hpc` is you do not have access to github repo. 
+# Run OnDemand App with a custom conda env
+
+Setup to run OnDemand apps on mccleary. As always, this is an overview and not an error-proof guide. Always, refer to [McCleary Docs from Yale HPC Team](https://docs.ycrc.yale.edu/clusters/mccleary/) and [Contact HPC support](https://docs.ycrc.yale.edu/) for questions.
+
+<!-- more -->
 
 ## Command Line setup
 
@@ -86,86 +90,78 @@ For loading your custom conda env in OnDemand apps like RStudio Server and Code 
 *	Create a directory where you can install/manage your modules. These modules are on top of modules managed by Yale HPC. [Guide for Modules](https://docs.ycrc.yale.edu/clusters-at-yale/applications/modules/)
 
 ```sh
-mkdir -p /gpfs/gibbs/pi/verhaak/"${USER}"/hpcenv/opt/modules
+mkdir -p /gpfs/gibbs/pi/labid/"${USER}"/hpcenv/opt/modules
 ```
 
 *	Edit your `~/.bash_profile` file on HPC and add following.
 
 ```sh
-module use --prepend /gpfs/gibbs/pi/verhaak/"${USER}"/hpcenv/opt/modules
+module use --prepend /gpfs/gibbs/pi/labid/"${USER}"/hpcenv/opt/modules
 ```
 
-*	Now, copy example module named `renv/1.0` from verhaak env as follows:
+*	Now, create a modulefile directory, named `renv` or the name of conda env you like to use in OnDemand App.
 
-```sh
-## do not change this command, especially no trailing / after renv, but / after
-## modules/ Why? Search on how rsync works and copies files and directories.
-rsync -avhP /gpfs/gibbs/pi/verhaak/env/opt/modules/renv /gpfs/gibbs/pi/verhaak/"${USER}"/hpcenv/opt/modules/
+```
+mkdir -p /gpfs/gibbs/pi/labid/"${USER}"/hpcenv/opt/modules/renv
 ```
 
-??? info "Modulefile: renv/1.0"
-	For those having no access to verhaak space, here is a modulefile. Copy contents of following code block in a file name, `1.0` and then put this file under your custom module directory, e.g., `/gpfs/gibbs/pi/verhaak/"${USER}"/hpcenv/opt/modules/renv/1.0`
-
-	```
-	help([==[
-	
-	Description
-	===========
-	Preload config for OnDemand Apps: Code Server and RStudio server.
-	
-	Note that this module, if loaded at the start of OnDemand VSCode or RStudio server, will be loaded
-	silently prior to initializing code-server.
-	
-	module list command may not show this module as being loaded but the module configs should have
-	already be applied to user env, e.g., PATH, LIBRARY_PATH, etc. should show directives set as per this module.
-	
-	Much of config for this file rely on upstream config from Yale HPC module for miniconda:
-	/vast/palmer/apps/avx2/modules/tools/miniconda/
-	
-	More information
-	================
- 	+ Yale HPC Guide: https://docs.ycrc.yale.edu/
- 	+ Module file: https://lmod.readthedocs.io/en/latest/
- 	+ Working with HPC: https://code.sbamin.com/hpc/
-	
-	]==])
-	
-	whatis([==[Description: Preload config for OnDemand Apps: RStudio Server and Code Server.]==])
-	whatis([==[URL: https://docs.ycrc.yale.edu/]==])
-	whatis([==[URL: https://code.sbamin.com/hpc/]==])
-	
-	-- Module Name and Version are parsed by Lmod from dir/version string in module path
-	-- REVIEW: ensure that this module file is under a directory that is named
-	-- exactly as the name of conda env you are trying to load, e.g.,
-	-- renv/1.0.lua will assume that you are trying to load conda env, renv
-	local pkgName = myModuleName()
-	local version = myModuleVersion()
-	local pkgNameVer = myModuleFullName()
-	
-	--other modules
-	-- load("module_name/version_id")
-	
-	-- following bash variable will be visible once you start rstudio server or
-	-- code server. Run command:
-	-- echo ${my_vscode} from rstudio or code server to ensure you have loaded
-	-- this module.
-	pushenv("my_vscode", "1.0")
-	
-	-- NOTE: Preferably should use depends_on and/or prereq for module loads
-	-- and not concatenate using bash && directive.
-	execute{cmd="module load miniconda && conda activate "..pkgName, modeA={"load"}}
-	execute{cmd="conda deactivate && module unload miniconda", modeA={"unload"}}
-	
-	-- end --
-	```
+*	Under `renv/` directory, create a modulefile named `1.0.lua` (our first version of this module) and add following contents to it.
 
 
-*	Above command will copy `renv/1.0` under your module directory, `/gpfs/gibbs/pi/verhaak/"${USER}"/hpcenv/opt/modules/`.
-*	Now, make sure to rename a directory `renv` to a name of conda env you created above. If your conda env is named `renv`, no need to run following commands.
+!!! tip "module directory name, `renv` must match conda env"
+	Ensure that module file, `1.0.lua` is under a directory that is named exactly as the name of conda env you are trying to load, e.g., `renv/1.0.lua` will assume that you are trying to load conda env, *renv*.
 
-```sh
-cd /gpfs/gibbs/pi/verhaak/"${USER}"/hpcenv/opt/modules/
-mv renv your_conda_env_name
+```lua title="<path_to_user_modules>/renv/1.0.lua"
+help([==[
+
+Description
+===========
+Preload config for OnDemand Apps: Code Server and RStudio server.
+
+Note that this module, if loaded at the start of OnDemand VSCode or RStudio server, will be loaded
+silently prior to initializing code-server.
+
+module list command may not show this module as being loaded but the module configs should have
+already be applied to user env, e.g., PATH, LIBRARY_PATH, etc. should show directives set as per this module.
+
+Much of config for this file rely on upstream config from Yale HPC module for miniconda:
+/vast/palmer/apps/avx2/modules/tools/miniconda/
+
+More information
+================
+	+ Yale HPC Guide: https://docs.ycrc.yale.edu/
+	+ Module file: https://lmod.readthedocs.io/en/latest/
+	+ Working with HPC: https://code.sbamin.com/hpc/
+
+]==])
+
+whatis([==[Description: Preload config for OnDemand Apps: RStudio Server and Code Server.]==])
+whatis([==[URL: https://docs.ycrc.yale.edu/]==])
+whatis([==[URL: https://code.sbamin.com/hpc/]==])
+
+-- Module Name and Version are parsed by Lmod from dir/version string in module path
+-- REVIEW: ensure that this module file is under a directory that is named
+-- exactly as the name of conda env you are trying to load, e.g.,
+-- renv/1.0.lua will assume that you are trying to load conda env, renv
+local pkgName = myModuleName()
+local version = myModuleVersion()
+local pkgNameVer = myModuleFullName()
+
+--other modules
+-- load("module_name/version_id")
+
+-- following bash variable will be visible once you start rstudio server or
+-- code server. Run command:
+-- echo ${my_vscode} from rstudio or code server to ensure you have loaded
+-- this module.
+pushenv("my_vscode", "1.0")
+
+-- NOTE: Preferably should use depends_on and/or prereq for module loads
+-- and not concatenate using bash && directive.
+execute{cmd="module load miniconda && conda activate "..pkgName, modeA={"load"}}
+execute{cmd="conda deactivate && module unload miniconda", modeA={"unload"}}
+
+-- end --
 ```
 
 ## Test run

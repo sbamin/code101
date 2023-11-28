@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DOCDIR="$HOME"/dbsa/acad/scripts/github/webpages/live/code101
+DOCDIR="$HOME"/sync/dbsa/acad/scripts/github/webpages/live/code101
 
 if [[ ! -d "$DOCDIR" || ! -x "$DOCDIR" ]]; then
 	echo -e "\nERROR: DOCDIR does not exists or not accesible at $DOCDIR\n" >&2
