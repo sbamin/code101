@@ -65,6 +65,14 @@
 
   {{ super() }}
 
+  {% if git_page_authors %}
+    <div class="md-source-date">
+      <small>
+          <a href="{{ page.edit_url | replace('edit', 'blob') }}" title="Requires a valid access to github repository">Contributors</a>: {{ git_page_authors | default('enable mkdocs-git-authors-plugin') }}
+      </small>
+    </div>
+  {% endif %}
+
   {% if page and page.meta and page.meta.author %}
     <p><small>Author: {{ page.meta.author }}</small></p>
   {% else %}
@@ -150,9 +158,5 @@
 	</script>
   {% endif %}
 
-  {# defunct scripts
-  <script src="{{config.site_url}}{{ 'assets/javascripts/bundle.93302429.min.js' | url }}"></script>
-  <script src="{{config.site_url}}{{ 'assets/javascripts/bundle.71c96ae2.min.js' | url }}"></script>
-  #}
 {% endblock %}
  

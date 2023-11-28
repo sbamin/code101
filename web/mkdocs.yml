@@ -32,11 +32,17 @@ theme:
   language: en
   features:
     - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.instant
     - navigation.top
     - navigation.indexes
-    - navigation.sections
+    - navigation.footer
+    - toc.follow
     - content.code.annotate
+    - content.code.copy
+    - content.action.edit
+    - content.action.view
+    - header.autohide
     - search.suggest
     - search.highlight
     - search.share
@@ -58,7 +64,9 @@ theme:
     code: 'Fira Code'
   icon:
     logo: logo
-    repo: fontawesome/brands/git-square
+    repo: material/github
+    edit: material/pencil
+    view: material/eye
   favicon: assets/images/fixed/favicon.ico
 
 # Plugins
@@ -66,13 +74,39 @@ plugins:
   - search
   - macros
   - git-revision-date-localized:
-      type: iso_date
+      type: timeago
       timezone: 'America/New_York'
       fallback_to_build_date: true
+      ## enabling creation date will impact peformance
+      enable_creation_date: false
   - minify:
       minify_html: true
+  - git-authors:
+      show_contribution: false
+      show_line_count: false
+      show_email_address: false
+      count_empty_lines: false
+      fallback_to_empty: false
+      sort_authors_by: name
+      authorship_threshold_percent: 10
+      exclude:
+          - index.md
+      enabled: true
   - tags:
       tags_file: tags.md
+  - blog:
+      blog_toc: true
+      authors: true
+      draft_on_serve: true
+      draft_if_future_date: true
+      post_date_format: medium
+      post_url_date_format: yyyy
+      post_url_format: "{date}/{slug}"
+      post_slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+      post_excerpt: optional
+      archive_toc: true
 
 ## Customization
 extra_css:
@@ -102,12 +136,19 @@ extra:
       link: https://sbamin.com/contact
   repo:
     url: https://github.com/sbamin/code101
+    base: sbamin/code101
     tree: /tree/main
     blob: /blob/main
+    raw: /raw/scratch/web/docs
+    viewfile: /blob/scratch/web/docs
+    viewdir: /tree/scratch/web/docs
   analytics:
     provider: google
     property: UA-307297-1
   site_keywords: "linux,getting started,computing,hpc, conda,bash,jupyter,programming,biology,bioinformatics,gpu"
+  sitebuilder:
+    url: https://github.com/sbamin/sitebuilder/releases
+    release: "1.5.2b1_arm64"
   version:
     provider: mike
     default: latest
@@ -127,7 +168,9 @@ markdown_extensions:
   - meta
   - md_in_html
   - toc:
+      title: "On this page"
       permalink: true
+      toc_depth: 3
   - pymdownx.arithmatex:
       generic: true
   - pymdownx.betterem:
@@ -165,6 +208,8 @@ markdown_extensions:
 # Page tree
 nav:
   - Home: index.md
+  - Blog:
+      - blog/index.md
   - Getting started with HPC:
     - hpc/index.md
     - CPU Computing:

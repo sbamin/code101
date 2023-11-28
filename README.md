@@ -9,5 +9,5 @@ My notes on programming, mostly using R, Python, and bash.
 This site is built using [MkDocs](https://www.mkdocs.org). It uses [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) theme and several extensions. To build local version of this documentation, you can install/upgrade following python packages, preferably in clean conda or virtual env. You can then use scripts similar to [serve_docs.sh] and [push_docs.sh] to serve and optionally, host your own documentation on Github Pages.
 
 ```
-pip install --upgrade mkdocs mkdocs-material mkdocs-git-revision-date-plugin  mkdocs-git-revision-date-localized-plugin mkdocs-minify-plugin pymdown-extensions mkdocs-macros-plugin mike
+pip install --upgrade mkdocs mkdocs-material mkdocs-git-revision-date-plugin  mkdocs-git-revision-date-localized-plugin mkdocs-minify-plugin mkdocs-redirects pymdown-extensions mkdocs-macros-plugin mike
 ```
