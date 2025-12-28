@@ -1,0 +1,108 @@
+---
+date: 2023-11-28
+draft: true
+categories:
+  - HowTo
+tags:
+  - onboarding
+  - hpc
+  - howto
+  - ondemand
+title: Quarto Computations
+fig-height: 3.5
+fig-width: 6
+execute:
+  eval: true
+  echo: false
+---
+
+
+# Test Quarto via mkdocs
+
+This is a simple example that uses python
+
+You can take a look at the .qmd that generated this docs
+from:
+
+[https://github.com/jspaezp/mkquartodocs/tree/main/docs](https://github.com/jspaezp/mkquartodocs/tree/main/docs)
+
+
+<!-- more -->
+
+## Hello
+
+Here is some text
+
+
+```{python}
+print("Hello World")
+```
+
+Here is how warnings look
+
+
+```{python}
+import warnings
+warnings.warn("This is a warning")
+```
+
+Some python logic
+
+
+```{python}
+# Fizz buzz as a simple list comprehension
+out = ["Fizz"*(i%3==0)+"Buzz"*(i%5==0) or str(i) for i in range(1, 101)]
+print(out)
+```
+
+
+Some pretty printing
+
+```{python}
+from pprint import pprint
+pprint(out)
+```
+
+```{python}
+#| error: true
+raise NotImplementedError
+```
+
+## R plot
+
+@fig-airquality further explores the impact of temperature on ozone level.
+
+```{r}
+#| label: fig-airquality
+#| fig-cap: "Temperature and ozone level."
+#| warning: false
+
+library(ggplot2)
+
+ggplot(airquality, aes(Temp, Ozone)) + 
+  geom_point() + 
+  geom_smooth(method = "loess")
+```
+
+## Python plot
+
+For a demonstration of a line plot on a polar axis, see @fig-polar.
+
+```{python}
+#| label: fig-polar
+#| fig-cap: "A line plot on a polar axis"
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+r = np.arange(0, 2, 0.01)
+theta = 2 * np.pi * r
+fig, ax = plt.subplots(
+  subplot_kw = {'projection': 'polar'} 
+)
+ax.plot(theta, r)
+ax.set_rticks([0.5, 1, 1.5, 2])
+ax.grid(True)
+plt.show()
+```
+

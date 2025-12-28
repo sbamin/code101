@@ -97,6 +97,7 @@ plugins:
   - blog:
       blog_toc: true
       authors: true
+      draft: false
       draft_on_serve: true
       draft_if_future_date: true
       post_date_format: medium
@@ -107,6 +108,11 @@ plugins:
           case: lower
       post_excerpt: optional
       archive_toc: true
+  - mkquartodocs:
+      #quarto_path: /usr/local/bin/quarto
+      keep_output: true
+      ignore: (.*wip.*.qmd)
+      force_rebuild: false
 
 ## Customization
 extra_css:
@@ -148,7 +154,7 @@ extra:
   site_keywords: "linux,getting started,computing,hpc, conda,bash,jupyter,programming,biology,bioinformatics,gpu"
   sitebuilder:
     url: https://github.com/sbamin/sitebuilder/releases
-    release: "1.5.2b1_arm64"
+    release: "1.5.8p1_arm64"
   version:
     provider: mike
     default: latest
@@ -179,8 +185,8 @@ markdown_extensions:
   - pymdownx.critic
   - pymdownx.details
   - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.twemoji
-      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.highlight:
       use_pygments: true
       linenums: false
