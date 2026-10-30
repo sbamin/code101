@@ -19,12 +19,18 @@ Setup to run OnDemand apps on mccleary. As always, this is an overview and not a
 
 ## Command Line setup
 
-* Login to mccleary using terminal. [Guide](https://docs.ycrc.yale.edu/clusters-at-yale/access/ssh/)
+!!! warning "Replace labid/netid with a valid path"
+	Ensure in this entire setup to replace occurrences of labid and netid with a valid group id and your real netid. Your group id should typically be your pi's last name .
+
+	- [ ] Your netid is very likely your user id too, e.d., `echo ${USER}`.
+	- [ ] Your group is very likely be an output of `id -g -n ${USER}`
+
+* Login to McCleary using terminal. [Guide](https://docs.ycrc.yale.edu/clusters-at-yale/access/ssh/)
 * Start an interactive job, so conda setup will not get be killed in the middle, corrupting your setup
 
 ```sh
 ## request 6 hours on devel partition with 4 cpus and 12G memory
-srun --job-name=myinteractive --chdir=${HOME} --partition=devel --time=06:00:00 --mem=1G --nodes=1 --cpus-per-task=4 --mail-type=FAIL --export=all --pty bash --login
+srun --job-name=myinteractive --chdir=${HOME} --partition=devel --time=06:00:00 --mem=12G --nodes=1 --cpus-per-task=4 --mail-type=FAIL --export=all --pty bash --login
 ```
 
 *	Once interactive job starts, you will notice a terminal prompt changing from `netid@login1or2.mccleary` to `netid@giberrish_compute_node_id.mccleary`, e.g., `netid@r209u08n02.mccleary`. Now, you are set to run conda set up as following!
@@ -33,14 +39,63 @@ srun --job-name=myinteractive --chdir=${HOME} --partition=devel --time=06:00:00 
 
 ```sh
 module load miniconda/23.5.2
+module list
+```
+
+>This should show miniconda/23.5.2 in loaded modules.
+
+*	Before creating a conda env, instruct conda setup to follow certain directives via *~/.condarc* file. This will enable conda to use a larger pi space over smaller (50 gb) home directory for storing conda related files. You can use Files section from [OnDemand dashboard](https://ood-mccleary.ycrc.yale.edu/pun/sys/dashboard) and navigate to Home directory and create a file, `/.condarc`. Alternately, on command-line terminal, you can run `nano ~/.condarc` to create and edit file. [See nano guide](https://linuxize.com/post/how-to-use-nano-text-editor/) Add following contents while replacing labid and netid with a valid id for your lab and netid, respectively.
+
+```title="/home/netid/.condarc"
+#### YCRC suggested condarc config ####
+## replace labid and netid below
+env_prompt: ({name})
+auto_activate_base: false
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+envs_dirs:
+  - /gpfs/gibbs/pi/labid/netid/hpcenv/opt/conda/envs
+pkgs_dirs:
+  - /gpfs/gibbs/pi/labid/netid/hpcenv/opt/conda/pkgs
+#### Additional config ####
+auto_update_conda: false
+always_yes: false
+add_pip_as_python_dependency: true
+ssl_verify: true
+allow_softlinks: true
+use_only_tar_bz2: false
+anaconda_upload: false
+repodata_threads: 4
+verify_threads: 4
+execute_threads: 4
+```
+
+Since miniconda module at yale hpc may set default env and pkg path for conda at *~/.conda/*, let's create a symlink from *~/.conda* to */gpfs/gibbs/pi/labid/netid/hpcenv/opt/conda/*, so all of larger files related to conda env can use larger pi space and not a limited (50 GB) home directory space. 
+
+```sh
+## replace labid and netid
+mkdir -p /gpfs/gibbs/pi/labid/netid/hpcenv/opt/conda
+mkdir -p /gpfs/gibbs/pi/labid/netid/hpcenv/opt/conda/envs
+mkdir -p /gpfs/gibbs/pi/labid/netid/hpcenv/opt/conda/pkgs
+
+cd "${HOME}"
+## if you already have ~/.conda directory, you should rename (move) it.
+## doing so will technically remove all of your current conda envs and pkgs
+## to a backup folder, ~/.oldconda
+## mv ~/.conda ~/.oldconda
+ln -s /gpfs/gibbs/pi/labid/netid/hpcenv/opt/conda ~/.conda
 ```
 
 *	Create a conda env with the desired name at `-n` flag in the following command, e.g., renv
 
->Here, we are creating a conda env using speedier `mamba` instead of `conda` command. While creating a new conda env, we ask conda to install latest R software as well as several commonly used R packages or libraries (one that starts with `r-`). We also install several other softwares to setup python language and kernels which can be useful at the later date to run OnDemand apps like Jupyter and Code Server.
+>Here, we are creating a conda env using speedier `mamba` instead of `conda` command. If `mamba` commands do not work, try one-time command `mamba init` to update your *~/.bashrc* file and restart terminal session (and interactive job).
+
+>While creating a new conda env, we ask conda to install latest R software as well as several commonly used R packages or libraries (one that starts with `r-`). We also install several other softwares to setup python language, api to connect to postgres database, and kernels which can be useful at the later date to run OnDemand apps like Jupyter and Code Server.
 
 ```sh
-mamba create -n renv r-base r-essentials r-tidyverse r-tidymodels r-devtools r-biocmanager r-pak gcc_linux-64 cmake autoconf python numpy scipy pandas matplotlib scikit-learn ipython jupyter r-irkernel
+mamba create -n renv r-base r-essentials r-tidyverse r-tidymodels r-devtools r-biocmanager r-pak r-odbc r-rpostgres r-httpgd r-languageserver r-lintr gcc_linux-64 cmake autoconf python numpy scipy pandas matplotlib scikit-learn ipython jupyter r-irkernel
 ```
 
 *	Once installation is complete, activate a new conda env. Replace `renv` below with a name of conda env you used above.
@@ -57,31 +112,6 @@ mamba activate renv
 	While searching https://anaconda.org/, always rely on packages stemming from either `conda-forge` or `bioconda` as those two are reliable software repositories and well-maintained. Never install conda packages from third-party developers.
 
 	To avoid breaking your conda env, worth reading [a detailed conda setup guide](https://code.sbamin.com/hpc/cpu/sumner_2/). Do not copy and paste commands but rather read and understand rationale behind maintaining a stable, error-free, conda env.
-
-
-*	Finally, create a file called `~/.condarc` on HPC and copy-paste following contents in it. You can use Files section from [OnDemand dashboard](https://ood-mccleary.ycrc.yale.edu/pun/sys/dashboard) and navigate to Home directory and create a file, `/.condarc`. Alternately, on command-line terminal, you can run `nano ~/.condarc` to create and edit file. [See nano guide](https://linuxize.com/post/how-to-use-nano-text-editor/)
-
-```
-#### YCRC suggested condarc config ####
-env_prompt: '({name})'
-auto_activate_base: false
-channels:
-  - conda-forge
-  - bioconda
-  - defaults
-#### Additional config ####
-auto_update_conda: False
-always_yes: False
-add_pip_as_python_dependency: True
-ssl_verify: True
-allow_softlinks: True
-use_only_tar_bz2: False
-anaconda_upload: False
-
-repodata_threads: 4
-verify_threads: 4
-execute_threads: 4
-```
 
 ## Using OnDemand Apps
 
@@ -101,7 +131,7 @@ module use --prepend /gpfs/gibbs/pi/labid/"${USER}"/hpcenv/opt/modules
 
 *	Now, create a modulefile directory, named `renv` or the name of conda env you like to use in OnDemand App.
 
-```
+```sh
 mkdir -p /gpfs/gibbs/pi/labid/"${USER}"/hpcenv/opt/modules/renv
 ```
 
