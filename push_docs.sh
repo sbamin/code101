@@ -1,54 +1,35 @@
 #!/bin/bash
 
-## Commit and publish to website
-## @sbamin
-
 ## commit message as the first argument
 REPO="code101"
 WEBURL="https://code.sbamin.com"
 WEB_BRANCH="www"
 
-DOCDIR="$HOME"/sync/dbsa/acad/scripts/github/webpages/live/"${REPO}"
-WEBDIR="/tmp/${REPO}"
+DOCDIR="$HOME"/sync/dbsa/acad/scripts/github/webpages/live/"${REPO}"/web
+WEBDIR="${HOME}/tmp/${REPO}"
 mkdir -p "${WEBDIR}"
 
 #### DANGER ####
 ## MAKE SURE TO HAVE VALID PATH HERE AS SCRIPT WILL NOT CHECK FOR PATH
 ## rsync may overwrite or worse, delete files on remote node.
 
-if [[ ! -d "$DOCDIR" || ! -x "$DOCDIR" || ! -x "$WEBDIR" ]]; then
-	echo -e "\nERROR: DOCDIR does not exists or not accesible at $DOCDIR OR\nWEBDIR does not exists or not accesible at $WEBDIR\n" >&2
+if [[ ! -d "$DOCDIR" || ! -x "$DOCDIR" ]]; then
+	echo -e "\nERROR: DOCDIR does not exists or not accesible at $DOCDIR\n" >&2
 	exit 1
 fi
-
-#### Activate CONDA in subshell ####
-## Read https://github.com/conda/conda/issues/7980
-CONDA_BASE=$(conda info --base) && \
-source "${CONDA_BASE}"/etc/profile.d/conda.sh && \
-conda activate ruby
-#### END CONDA SETUP ####
 
 ## strict check
 set -euo pipefail
 
-## build www ##
-cd "${DOCDIR}"/web && \
-echo "Start building ${REPO}..."
+mkdocs() { pixi run --manifest-path "$HOME"/.config/pixi-global/pixi.toml -e sitebuilder mkdocs "$@"; }
+
+cd "$DOCDIR" && \
+echo "Start building..."
 
 ## build docs
 rm -rf "${WEBDIR}" && \
 mkdir -p "${WEBDIR}" && \
-mkdocs build --clean --site-dir "${WEBDIR}" && echo -e "\nINFO: Built updated docs for ${REPO}\n" && \
-mkdocs gh-deploy --remote-branch "${WEB_BRANCH}" --clean --site-dir "${WEBDIR}" -m "published commit: {sha} and mkdocs {version}" && \
-echo "Successfully updated ${WEBURL} to ${REPO}:${WEB_BRANCH}"
-
-# ## versioning ##
-# ## unstable 
-# mike list --branch www
-# mike deploy --branch www --push --update-aliases 1.1 latest
-# ## mike set-default -b www --push latest
-# mike list --branch www
-
-
+mkdocs build --clean --site-dir "${WEBDIR}" && echo -e "\nINFO: Built updated docs\n" && \
+mkdocs gh-deploy --remote-branch "${WEB_BRANCH}" --clean --site-dir "${WEBDIR}" -m "published using commit: {sha} and mkdocs {version}"
 
 ## END ##
